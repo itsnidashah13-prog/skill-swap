@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills - Community Skill Swap</title>
+    <link rel="stylesheet" href="style-new.css">
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Skills Exchange</h1>
+            <nav>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="skills.html" class="nav-link active">Browse Skills</a>
+                <a href="#" onclick="logout()" class="nav-link">Logout</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="skills-controls">
+                <div class="filter-controls">
+                    <input type="text" id="search-input" placeholder="Search skills..." class="search-input">
+                    <select id="category-filter" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="Programming">Programming</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Writing">Writing</option>
+                        <option value="Music">Music</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <button onclick="loadSkills()" class="btn btn-secondary">Search</button>
+                </div>
+                <button onclick="window.location.href='add-skill.html'" class="btn btn-primary">
+                    Add New Skill
+                </button>
+            </section>
+
+            <section class="skills-grid" id="skills-grid">
+                <div class="loading">Loading skills...</div>
+            </section>
+        </main>
+    </div>
+    <script src="script-new.js"></script>
+</body>
+</html>

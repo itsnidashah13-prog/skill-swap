@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Swap Admin - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .admin-header {
+            background: #667eea;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .admin-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .admin-nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: #667eea;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-header h2 {
+            font-size: 1.2rem;
+        }
+        
+        .section-header a {
+            color: white;
+            text-decoration: none;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .section-content {
+            padding: 1.5rem;
+        }
+        
+        .item-list {
+            list-style: none;
+        }
+        
+        .item-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .item-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .item-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .item-meta {
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.25rem 0.75rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-view {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .btn-edit {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .btn-delete {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>🔧 Skill Swap Admin</h1>
+        <nav class="admin-nav">
+            <a href="/admin/">Dashboard</a>
+            <a href="/admin/users">Users</a>
+            <a href="/admin/skills">Skills</a>
+            <a href="/admin/requests">Requests</a>
+            <a href="#" onclick="logout()" class="logout-btn">Logout</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.users }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.skills }}</div>
+                <div class="stat-label">Total Skills</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.requests }}</div>
+                <div class="stat-label">Exchange Requests</div>
+            </div>
+        </div>
+        
+        <!-- Recent Users -->
+        <div class="section">
+            <div class="section-header">
+                <h2>👥 Recent Users</h2>
+                <a href="/admin/users">View All</a>
+            </div>
+            <div class="section-content">
+                <ul class="item-list">
+                    {% for user in recent_users %}
+                    <li>
+                        <div class="item-info">
+                            <div class="item-title">{{ user.full_name or user.username }}</div>
+                            <div class="item-meta">{{ user.email }} • Joined {{ user.created_at.strftime('%Y-%m-%d') }}</div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="/admin/users/{{ user.id }}" class="btn btn-view">View</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Recent Skills -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🎯 Recent Skills</h2>
+                <a href="/admin/skills">View All</a>
+            </div>
+            <div class="section-content">
+                <ul class="item-list">
+                    {% for skill in recent_skills %}
+                    <li>
+                        <div class="item-info">
+                            <div class="item-title">{{ skill.title }}</div>
+                            <div class="item-meta">{{ skill.category }} • {{ skill.proficiency_level }} • By {{ skill.owner.full_name or skill.owner.username }}</div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="/admin/skills/{{ skill.id }}" class="btn btn-view">View</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Recent Requests -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📋 Recent Requests</h2>
+                <a href="/admin/requests">View All</a>
+            </div>
+            <div class="section-content">
+                <ul class="item-list">
+                    {% for request in recent_requests %}
+                    <li>
+                        <div class="item-info">
+                            <div class="item-title">{{ request.skill.title }}</div>
+                            <div class="item-meta">{{ request.requester.full_name }} → {{ request.skill_owner.full_name }} • {{ request.status }}</div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="/admin/requests/{{ request.id }}" class="btn btn-view">View</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function logout() {
+            sessionStorage.removeItem('adminAuth');
+            window.location.href = '/admin/login';
+        }
+        
+        // Check authentication
+        if (!sessionStorage.getItem('adminAuth')) {
+            window.location.href = '/admin/login';
+        }
+    </script>
+</body>
+</html>

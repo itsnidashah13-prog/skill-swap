@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Authentication Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #007bff;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        .warning { border-left-color: #ffc107; }
+        button { 
+            padding: 10px 20px; 
+            margin: 5px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        .result { 
+            background: #e9ecef; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 3px; 
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Complete Authentication & API Test</h1>
+    
+    <div class="test-section">
+        <h3>1. Token Storage Test</h3>
+        <button onclick="testTokenStorage()">Test Token Storage</button>
+        <div id="token-result" class="result">Click to test token storage...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Skills API Test (Public)</h3>
+        <button onclick="testSkillsAPI()">Test Skills API</button>
+        <div id="skills-result" class="result">Click to test skills endpoint...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Exchange Request Test (Auth Required)</h3>
+        <button onclick="testExchangeRequest()">Test Exchange Request</button>
+        <div id="exchange-result" class="result">Click to test exchange request...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Backend Health Test</h3>
+        <button onclick="testBackendHealth()">Test Backend Health</button>
+        <div id="health-result" class="result">Click to test backend health...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>5. CORS Test</h3>
+        <button onclick="testCORS()">Test CORS</button>
+        <div id="cors-result" class="result">Click to test CORS...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>6. Clear All Data</h3>
+        <button onclick="clearAllData()">Clear All Tokens & Data</button>
+        <div id="clear-result" class="result">Click to clear all data...</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        function updateResult(elementId, content, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = content;
+            element.className = `result ${type}`;
+        }
+        
+        function testTokenStorage() {
+            console.log('🔍 Testing token storage...');
+            
+            const access_token = localStorage.getItem('access_token');
+            const authToken = localStorage.getItem('authToken');
+            const token = localStorage.getItem('token');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            const result = `
+                <strong>Token Storage Status:</strong><br>
+                access_token: ${access_token ? '✅ Present' : '❌ Missing'}<br>
+                authToken: ${authToken ? '✅ Present' : '❌ Missing'}<br>
+                token: ${token ? '✅ Present' : '❌ Missing'}<br>
+                currentUser: ${currentUser ? '✅ Present' : '❌ Missing'}<br>
+                <br>
+                <strong>Token Values (first 30 chars):</strong><br>
+                access_token: ${access_token ? access_token.substring(0, 30) + '...' : 'null'}<br>
+                authToken: ${authToken ? authToken.substring(0, 30) + '...' : 'null'}<br>
+                token: ${token ? token.substring(0, 30) + '...' : 'null'}<br>
+            `;
+            
+            updateResult('token-result', result, access_token ? 'success' : 'warning');
+        }
+        
+        async function testSkillsAPI() {
+            console.log('🔍 Testing skills API...');
+            updateResult('skills-result', 'Testing skills endpoint...', 'warning');
+            
+            try {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('authToken') || localStorage.getItem('token');
+                console.log('🔍 Token for skills test:', !!token);
+                
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+                    }
+                });
+                
+                console.log('🔍 Skills response:', response.status);
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    updateResult('skills-result', `
+                        <strong>✅ Skills API Success!</strong><br>
+                        Status: ${response.status}<br>
+                        Skills Count: ${skills.length}<br>
+                        Auth Header Used: ${token ? 'Yes' : 'No'}<br>
+                        <br>
+                        <strong>Sample Skill:</strong><br>
+                        ${skills.length > 0 ? JSON.stringify(skills[0], null, 2).substring(0, 200) + '...' : 'No skills found'}
+                    `, 'success');
+                } else {
+                    const error = await response.text();
+                    updateResult('skills-result', `
+                        <strong>❌ Skills API Failed!</strong><br>
+                        Status: ${response.status} ${response.statusText}<br>
+                        Error: ${error}<br>
+                        Auth Header Used: ${token ? 'Yes' : 'No'}
+                    `, 'error');
+                }
+            } catch (error) {
+                updateResult('skills-result', `
+                    <strong>❌ Skills API Network Error!</strong><br>
+                    Error: ${error.message}<br>
+                    URL: ${API_BASE_URL}/skills/
+                `, 'error');
+            }
+        }
+        
+        async function testExchangeRequest() {
+            console.log('🔍 Testing exchange request...');
+            updateResult('exchange-result', 'Testing exchange request...', 'warning');
+            
+            const token = localStorage.getItem('access_token') || localStorage.getItem('authToken') || localStorage.getItem('token');
+            
+            if (!token) {
+                updateResult('exchange-result', `
+                    <strong>❌ No Token Available!</strong><br>
+                    Cannot test exchange request without authentication.<br>
+                    Please login first.
+                `, 'error');
+                return;
+            }
+            
+            try {
+                const requestData = {
+                    skill_id: 1,
+                    message: 'Test exchange request from auth test page',
+                };
+                
+                console.log('🔍 Sending exchange request with token:', token.substring(0, 30) + '...');
+                
+                const response = await fetch(`${API_BASE_URL}/exchanges/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData),
+                });
+                
+                console.log('🔍 Exchange response:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    updateResult('exchange-result', `
+                        <strong>✅ Exchange Request Success!</strong><br>
+                        Status: ${response.status}<br>
+                        Request ID: ${result.id || 'N/A'}<br>
+                        Token Used: ✅ Yes
+                    `, 'success');
+                } else {
+                    const error = await response.json();
+                    updateResult('exchange-result', `
+                        <strong>❌ Exchange Request Failed!</strong><br>
+                        Status: ${response.status} ${response.statusText}<br>
+                        Error: ${error.detail || error}<br>
+                        Token Used: ✅ Yes
+                    `, 'error');
+                }
+            } catch (error) {
+                updateResult('exchange-result', `
+                    <strong>❌ Exchange Request Network Error!</strong><br>
+                    Error: ${error.message}<br>
+                    URL: ${API_BASE_URL}/exchanges/
+                `, 'error');
+            }
+        }
+        
+        async function testBackendHealth() {
+            console.log('🔍 Testing backend health...');
+            updateResult('health-result', 'Testing backend health...', 'warning');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateResult('health-result', `
+                        <strong>✅ Backend Health Success!</strong><br>
+                        Status: ${response.status}<br>
+                        Response: ${JSON.stringify(data)}
+                    `, 'success');
+                } else {
+                    updateResult('health-result', `
+                        <strong>❌ Backend Health Failed!</strong><br>
+                        Status: ${response.status} ${response.statusText}
+                    `, 'error');
+                }
+            } catch (error) {
+                updateResult('health-result', `
+                    <strong>❌ Backend Health Network Error!</strong><br>
+                    Error: ${error.message}<br>
+                    URL: ${API_BASE_URL}/health
+                `, 'error');
+            }
+        }
+        
+        async function testCORS() {
+            console.log('🔍 Testing CORS...');
+            updateResult('cors-result', 'Testing CORS...', 'warning');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+                };
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateResult('cors-result', `
+                        <strong>✅ CORS Test Success!</strong><br>
+                        Status: ${response.status}<br>
+                        Your Origin: ${window.location.origin}<br>
+                        <br>
+                        <strong>CORS Headers:</strong><br>
+                        Allow-Origin: ${corsHeaders['Access-Control-Allow-Origin'] || 'Not set'}<br>
+                        Allow-Methods: ${corsHeaders['Access-Control-Allow-Methods'] || 'Not set'}<br>
+                        Allow-Headers: ${corsHeaders['Access-Control-Allow-Headers'] || 'Not set'}<br>
+                        Allow-Credentials: ${corsHeaders['Access-Control-Allow-Credentials'] || 'Not set'}<br>
+                        <br>
+                        <strong>Response:</strong><br>
+                        ${JSON.stringify(data)}
+                    `, 'success');
+                } else {
+                    updateResult('cors-result', `
+                        <strong>❌ CORS Test Failed!</strong><br>
+                        Status: ${response.status} ${response.statusText}<br>
+                        This is likely a CORS issue.
+                    `, 'error');
+                }
+            } catch (error) {
+                updateResult('cors-result', `
+                    <strong>❌ CORS Test Network Error!</strong><br>
+                    Error: ${error.message}<br>
+                    This is likely a CORS or network issue.
+                `, 'error');
+            }
+        }
+        
+        function clearAllData() {
+            console.log('🔍 Clearing all data...');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            
+            updateResult('clear-result', `
+                <strong>✅ All Data Cleared!</strong><br>
+                All tokens and user data removed from localStorage.
+            `, 'success');
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🔍 Page loaded, running initial tests...');
+            testTokenStorage();
+            testBackendHealth();
+        });
+    </script>
+</body>
+</html>

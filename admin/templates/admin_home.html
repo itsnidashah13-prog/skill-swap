@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }} | Django Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .admin-header {
+            background: #79aec8;
+            color: #fff;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header h1 {
+            font-size: 1.2rem;
+            font-weight: 400;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .admin-title {
+            font-size: 1.8rem;
+            color: #666;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .app-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .app-item {
+            display: flex;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #eee;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.2s;
+        }
+        
+        .app-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .app-item:last-child {
+            border-bottom: none;
+        }
+        
+        .app-icon {
+            width: 40px;
+            height: 40px;
+            background: #79aec8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .app-info {
+            flex: 1;
+        }
+        
+        .app-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+        
+        .app-model {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .app-count {
+            background: #79aec8;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .add-button {
+            background: #417690;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+        
+        .add-button:hover {
+            background: #306098;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>{{ site_header }}</h1>
+    </div>
+    
+    <div class="container">
+        <h1 class="admin-title">Site administration</h1>
+        
+        <div class="app-list">
+            {% for app in app_list %}
+            <a href="{{ app.url }}" class="app-item">
+                <div class="app-icon">
+                    {% if app.name == "Users" %}👥
+                    {% elif app.name == "Skills" %}🎯
+                    {% elif app.name == "Exchange Requests" %}📋
+                    {% else %}📄{% endif %}
+                </div>
+                <div class="app-info">
+                    <div class="app-name">{{ app.name }}</div>
+                    <div class="app-model">{{ app.model }}</div>
+                </div>
+                <div class="app-count">{{ app.count }}</div>
+                <a href="{{ app.add_url }}" class="add-button">+ Add</a>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

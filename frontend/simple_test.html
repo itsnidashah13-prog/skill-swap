@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple Frontend Test</h1>
+    <div id="result">Testing...</div>
+    
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        // Test backend connectivity
+        fetch(`${API_BASE_URL}/`)
+            .then(response => {
+                console.log('Backend response:', response);
+                document.getElementById('result').innerHTML = `
+                    <h3>✅ Backend Connected!</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>URL: ${API_BASE_URL}</p>
+                `;
+                return response.json();
+            })
+            .then(data => {
+                console.log('Backend data:', data);
+            })
+            .catch(error => {
+                console.error('Connection error:', error);
+                document.getElementById('result').innerHTML = `
+                    <h3>❌ Connection Failed</h3>
+                    <p>Error: ${error.message}</p>
+                    <p>URL: ${API_BASE_URL}</p>
+                    <p>Make sure backend is running on port 8000</p>
+                `;
+            });
+    </script>
+</body>
+</html>

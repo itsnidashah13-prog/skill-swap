@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Skill - Community Skill Swap</title>
+    <link rel="stylesheet" href="style-new.css">
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Add New Skill</h1>
+            <nav>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="skills.html" class="nav-link">Browse Skills</a>
+                <a href="#" onclick="logout()" class="nav-link">Logout</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="form-section">
+                <h2>Share Your Skill</h2>
+                <form id="addSkillForm" class="skill-form">
+                    <div class="form-group">
+                        <label for="title">Skill Title *</label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" name="description" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Category *</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select a category</option>
+                            <option value="Programming">Programming</option>
+                            <option value="Design">Design</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Writing">Writing</option>
+                            <option value="Music">Music</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="proficiency_level">Proficiency Level *</label>
+                        <select id="proficiency_level" name="proficiency_level" required>
+                            <option value="">Select level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Expert">Expert</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="value">Skill Value (0-1000)</label>
+                        <input type="number" id="value" name="value" min="0" max="1000" value="100">
+                        <small>Optional: Higher values indicate more advanced skills</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Add Skill</button>
+                        <button type="button" onclick="window.location.href='skills.html'" class="btn btn-secondary">
+                            Cancel
+                        </button>
+                    </div>
+                    
+                    <div id="error-message" class="error-message"></div>
+                </form>
+            </section>
+        </main>
+    </div>
+    <script src="script-new.js"></script>
+</body>
+</html>

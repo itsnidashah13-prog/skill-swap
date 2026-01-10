@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Request Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        button { padding: 10px 20px; margin: 5px; }
+        input, textarea { padding: 5px; margin: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Exchange Request Test</h1>
+    
+    <div>
+        <h3>Step 1: Login</h3>
+        <input type="text" id="username" placeholder="Username" value="testuser_debug">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <button onclick="testLogin()">Login & Get Token</button>
+    </div>
+    
+    <div>
+        <h3>Step 2: Test Exchange Request</h3>
+        <input type="number" id="skillId" placeholder="Skill ID" value="1">
+        <textarea id="message" placeholder="Message" rows="3">I would like to exchange skills with you!</textarea>
+        <button onclick="testExchangeRequest()">Send Exchange Request</button>
+    </div>
+    
+    <div id="result" class="result">Follow steps above to test exchange request...</div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        let currentToken = null;
+        
+        async function testLogin() {
+            const result = document.getElementById('result');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            result.innerHTML = 'Testing login...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentToken = data.access_token;
+                    
+                    // Save token with both keys
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('authToken', data.access_token);
+                    
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>LOGIN SUCCESS!</h3>
+                        <p>Token: ${data.access_token.substring(0, 50)}...</p>
+                        <p>Now test exchange request below.</p>
+                    `;
+                } else {
+                    const error = await response.json();
+                    result.className = 'result error';
+                    result.innerHTML = `<h3>LOGIN FAILED</h3><p>${error.detail}</p>`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<h3>NETWORK ERROR</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        async function testExchangeRequest() {
+            const result = document.getElementById('result');
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                result.className = 'result error';
+                result.innerHTML = '<h3>NO TOKEN</h3><p>Please login first.</p>';
+                return;
+            }
+            
+            const skillId = document.getElementById('skillId').value;
+            const message = document.getElementById('message').value;
+            
+            result.innerHTML = 'Sending exchange request...';
+            
+            try {
+                const requestData = {
+                    skill_id: parseInt(skillId),
+                    message: message,
+                };
+                
+                console.log('Sending exchange request:', requestData);
+                console.log('Using token:', token.substring(0, 50) + '...');
+                
+                const response = await fetch(`${API_BASE_URL}/exchanges/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData),
+                });
+                
+                console.log('Exchange response:', response);
+                
+                if (response.ok) {
+                    const responseData = await response.json();
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>EXCHANGE REQUEST SUCCESS!</h3>
+                        <p>Status: ${response.status}</p>
+                        <p>Response: ${JSON.stringify(responseData, null, 2)}</p>
+                    `;
+                } else {
+                    const error = await response.text();
+                    result.className = 'result error';
+                    result.innerHTML = `
+                        <h3>EXCHANGE REQUEST FAILED</h3>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <p>Error: ${error}</p>
+                        <p>Request Data: ${JSON.stringify(requestData, null, 2)}</p>
+                        <p>Token Used: ${token.substring(0, 50)}...</p>
+                    `;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>NETWORK ERROR</h3>
+                    <p>${error.message}</p>
+                    <p>URL: ${API_BASE_URL}/exchanges/</p>
+                    <p>Token: ${token ? token.substring(0, 50) + '...' : 'None'}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        button { padding: 10px 20px; margin: 5px; }
+        input, textarea { padding: 5px; margin: 5px; width: 300px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Token Validation Debug Test</h1>
+    
+    <div>
+        <h3>Step 1: Fresh Login</h3>
+        <input type="text" id="username" placeholder="Username" value="testuser_debug">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <button onclick="freshLogin()">Fresh Login</button>
+    </div>
+    
+    <div>
+        <h3>Step 2: Test Token Validation</h3>
+        <button onclick="testTokenValidation()">Test Token Validation</button>
+        <button onclick="testExchangeRequest()">Test Exchange Request</button>
+        <button onclick="testSkillsAPI()">Test Skills API</button>
+    </div>
+    
+    <div>
+        <h3>Step 3: Token Analysis</h3>
+        <button onclick="analyzeToken()">Analyze Stored Token</button>
+        <button onclick="clearAllTokens()">Clear All Tokens</button>
+    </div>
+    
+    <div id="result" class="result">Click buttons above to debug token validation...</div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        let currentToken = null;
+        
+        function updateResult(content, isError = false) {
+            const result = document.getElementById('result');
+            result.className = isError ? 'result error' : 'result success';
+            result.innerHTML = content;
+        }
+        
+        async function freshLogin() {
+            updateResult('Performing fresh login...');
+            
+            try {
+                // Clear all tokens first
+                localStorage.removeItem('token');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                console.log('🔍 DEBUG: Fresh login attempt');
+                console.log('🔍 DEBUG: Username:', username);
+                
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                
+                console.log('🔍 DEBUG: Login response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentToken = data.access_token;
+                    
+                    // Save token with both keys
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('authToken', data.access_token);
+                    
+                    console.log('🔍 DEBUG: Token received:', data.access_token.substring(0, 50) + '...');
+                    console.log('🔍 DEBUG: Token type:', data.token_type);
+                    
+                    updateResult(`
+                        <h3>✅ LOGIN SUCCESS!</h3>
+                        <p><strong>Token:</strong> ${data.access_token.substring(0, 50)}...</p>
+                        <p><strong>Type:</strong> ${data.token_type}</p>
+                        <p><strong>Length:</strong> ${data.access_token.length}</p>
+                        <p><strong>Stored as:</strong> 'token' and 'authToken' in localStorage</p>
+                        <p>Now test token validation below.</p>
+                    `);
+                } else {
+                    const error = await response.json();
+                    updateResult(`<h3>❌ LOGIN FAILED</h3><p>${error.detail}</p>`, true);
+                }
+            } catch (error) {
+                updateResult(`<h3>❌ NETWORK ERROR</h3><p>${error.message}</p>`, true);
+            }
+        }
+        
+        async function testTokenValidation() {
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                updateResult('<h3>❌ NO TOKEN</h3><p>Please login first.</p>', true);
+                return;
+            }
+            
+            updateResult('Testing token validation...');
+            
+            try {
+                console.log('🔍 DEBUG: Testing token validation');
+                console.log('🔍 DEBUG: Token:', token.substring(0, 50) + '...');
+                
+                const response = await fetch(`${API_BASE_URL}/users/me`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                console.log('🔍 DEBUG: Token validation response:', response.status);
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    updateResult(`
+                        <h3>✅ TOKEN VALIDATION SUCCESS!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>User:</strong> ${userData.username}</p>
+                        <p><strong>Email:</strong> ${userData.email}</p>
+                        <p><strong>Full Name:</strong> ${userData.full_name}</p>
+                        <p>Token is working correctly!</p>
+                    `);
+                } else {
+                    const error = await response.text();
+                    console.error('🔍 DEBUG: Token validation error:', error);
+                    updateResult(`
+                        <h3>❌ TOKEN VALIDATION FAILED</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Error:</strong> ${error}</p>
+                        <p><strong>Token used:</strong> ${token.substring(0, 50)}...</p>
+                        <p>Check backend console for detailed debug info.</p>
+                    `, true);
+                }
+            } catch (error) {
+                updateResult(`<h3>❌ NETWORK ERROR</h3><p>${error.message}</p>`, true);
+            }
+        }
+        
+        async function testExchangeRequest() {
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                updateResult('<h3>❌ NO TOKEN</h3><p>Please login first.</p>', true);
+                return;
+            }
+            
+            updateResult('Testing exchange request...');
+            
+            try {
+                const requestData = {
+                    skill_id: 1,
+                    message: 'Debug test exchange request',
+                };
+                
+                console.log('🔍 DEBUG: Testing exchange request');
+                console.log('🔍 DEBUG: Request data:', requestData);
+                console.log('🔍 DEBUG: Token:', token.substring(0, 50) + '...');
+                
+                const response = await fetch(`${API_BASE_URL}/exchanges/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData),
+                });
+                
+                console.log('🔍 DEBUG: Exchange request response:', response.status);
+                
+                if (response.ok) {
+                    const responseData = await response.json();
+                    updateResult(`
+                        <h3>✅ EXCHANGE REQUEST SUCCESS!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Response:</strong></p>
+                        <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                    `);
+                } else {
+                    const error = await response.text();
+                    console.error('🔍 DEBUG: Exchange request error:', error);
+                    updateResult(`
+                        <h3>❌ EXCHANGE REQUEST FAILED</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Error:</strong> ${error}</p>
+                        <p><strong>Request Data:</strong></p>
+                        <pre>${JSON.stringify(requestData, null, 2)}</pre>
+                        <p><strong>Token used:</strong> ${token.substring(0, 50)}...</p>
+                        <p>Check backend console for detailed debug info.</p>
+                    `, true);
+                }
+            } catch (error) {
+                updateResult(`<h3>❌ NETWORK ERROR</h3><p>${error.message}</p>`, true);
+            }
+        }
+        
+        async function testSkillsAPI() {
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                updateResult('<h3>❌ NO TOKEN</h3><p>Please login first.</p>', true);
+                return;
+            }
+            
+            updateResult('Testing skills API...');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    updateResult(`
+                        <h3>✅ SKILLS API SUCCESS!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Skills Count:</strong> ${skills.length}</p>
+                        <p>Skills API is working with token!</p>
+                    `);
+                } else {
+                    const error = await response.text();
+                    updateResult(`
+                        <h3>❌ SKILLS API FAILED</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Error:</strong> ${error}</p>
+                    `, true);
+                }
+            } catch (error) {
+                updateResult(`<h3>❌ NETWORK ERROR</h3><p>${error.message}</p>`, true);
+            }
+        }
+        
+        function analyzeToken() {
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                updateResult('<h3>❌ NO TOKEN</h3><p>No token found in localStorage.</p>', true);
+                return;
+            }
+            
+            // Try to decode token (without verification)
+            try {
+                const parts = token.split('.');
+                if (parts.length === 3) {
+                    const header = JSON.parse(atob(parts[0]));
+                    const payload = JSON.parse(atob(parts[1]));
+                    
+                    updateResult(`
+                        <h3>🔍 TOKEN ANALYSIS</h3>
+                        <p><strong>Token Length:</strong> ${token.length}</p>
+                        <p><strong>Parts:</strong> ${parts.length} (header.payload.signature)</p>
+                        <p><strong>Header:</strong></p>
+                        <pre>${JSON.stringify(header, null, 2)}</pre>
+                        <p><strong>Payload:</strong></p>
+                        <pre>${JSON.stringify(payload, null, 2)}</pre>
+                        <p><strong>Expires:</strong> ${new Date(payload.exp * 1000).toLocaleString()}</p>
+                        <p><strong>Current Time:</strong> ${new Date().toLocaleString()}</p>
+                        <p><strong>Expired:</strong> ${Date.now() > payload.exp * 1000 ? 'YES ❌' : 'NO ✅'}</p>
+                    `);
+                } else {
+                    updateResult(`<h3>❌ INVALID TOKEN FORMAT</h3><p>Expected 3 parts, got ${parts.length}</p>`, true);
+                }
+            } catch (error) {
+                updateResult(`<h3>❌ TOKEN ANALYSIS ERROR</h3><p>${error.message}</p>`, true);
+            }
+        }
+        
+        function clearAllTokens() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            currentToken = null;
+            updateResult('<h3>🧹 CLEARED</h3><p>All tokens cleared from localStorage.</p>');
+        }
+    </script>
+</body>
+</html>

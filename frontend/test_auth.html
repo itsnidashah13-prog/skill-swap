@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        button { padding: 10px 20px; margin: 5px; }
+        input { padding: 5px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    
+    <div>
+        <h3>Login Test</h3>
+        <input type="text" id="username" placeholder="Username" value="testuser_debug">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+    
+    <div>
+        <h3>Token Check</h3>
+        <button onclick="checkToken()">Check Stored Token</button>
+        <button onclick="clearToken()">Clear Token</button>
+    </div>
+    
+    <div>
+        <h3>API Test</h3>
+        <button onclick="testAPI()">Test Skills API</button>
+    </div>
+    
+    <div id="result" class="result">Click buttons to test...</div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        async function testLogin() {
+            const result = document.getElementById('result');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            result.innerHTML = 'Testing login...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Login response:', data);
+                    
+                    // Save token with both keys
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('authToken', data.access_token);
+                    
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>LOGIN SUCCESS!</h3>
+                        <p>Token received: ${data.access_token.substring(0, 50)}...</p>
+                        <p>Token saved to localStorage as 'token' and 'authToken'</p>
+                        <p>Now test the API button below.</p>
+                    `;
+                } else {
+                    const error = await response.json();
+                    result.className = 'result error';
+                    result.innerHTML = `<h3>LOGIN FAILED</h3><p>${error.detail}</p>`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<h3>NETWORK ERROR</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        function checkToken() {
+            const result = document.getElementById('result');
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (token) {
+                result.className = 'result success';
+                result.innerHTML = `
+                    <h3>TOKEN FOUND</h3>
+                    <p>Token exists: ${token.substring(0, 50)}...</p>
+                    <p>Length: ${token.length}</p>
+                    <p>Keys in localStorage: ${Object.keys(localStorage).join(', ')}</p>
+                `;
+            } else {
+                result.className = 'result error';
+                result.innerHTML = `<h3>NO TOKEN FOUND</h3><p>Please login first.</p>`;
+            }
+        }
+        
+        function clearToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            document.getElementById('result').innerHTML = 'Token cleared.';
+        }
+        
+        async function testAPI() {
+            const result = document.getElementById('result');
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            
+            if (!token) {
+                result.className = 'result error';
+                result.innerHTML = '<h3>NO TOKEN</h3><p>Please login first.</p>';
+                return;
+            }
+            
+            result.innerHTML = 'Testing API with token...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                console.log('API Response:', response);
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>API SUCCESS!</h3>
+                        <p>Status: ${response.status}</p>
+                        <p>Skills Count: ${skills.length}</p>
+                        <p>First Skill: ${skills.length > 0 ? skills[0].title : 'None'}</p>
+                        <pre>${JSON.stringify(skills, null, 2)}</pre>
+                    `;
+                } else {
+                    const error = await response.text();
+                    result.className = 'result error';
+                    result.innerHTML = `
+                        <h3>API FAILED</h3>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <p>Error: ${error}</p>
+                    `;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<h3>NETWORK ERROR</h3><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

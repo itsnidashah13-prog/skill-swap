@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Skill Exchange</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .auth-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .auth-form input {
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            min-width: 200px;
+        }
+
+        .auth-form button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .auth-form button:hover {
+            background: #3182ce;
+        }
+
+        .auth-status {
+            background: #e6fffa;
+            border: 1px solid #b2f5ea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2::before {
+            content: "📊";
+            font-size: 1.2rem;
+        }
+
+        .skills-card h2::before {
+            content: "🎯";
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: #fef5e7;
+            color: #d69e2e;
+        }
+
+        .status-accepted {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .status-rejected {
+            background: #fff5f5;
+            color: #e53e3e;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #fff5f5;
+            color: #e53e3e;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .refresh-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn:hover {
+            background: #3182ce;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #4299e1;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .logout-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .logout-btn:hover {
+            background: #c53030;
+        }
+
+        .debug-info {
+            background: #e6fffa;
+            border: 1px solid #b2f5ea;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            background: #f0fff4;
+            color: #38a169;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #38a169;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .auth-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <p>Skill Exchange Platform Management</p>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="auth-section" id="authSection">
+            <h2>Admin Authentication</h2>
+            <div class="auth-form">
+                <input type="text" id="adminUsername" placeholder="Admin Username" value="admin" />
+                <input type="password" id="adminPassword" placeholder="Admin Password" />
+                <button onclick="adminLogin()">Login</button>
+            </div>
+            <div class="auth-status" id="authStatus">
+                Enter admin credentials to access dashboard
+            </div>
+        </div>
+
+        <!-- Dashboard Content (Initially Hidden) -->
+        <div id="dashboardContent" class="hidden">
+            <div class="header">
+                <h1>Admin Dashboard</h1>
+                <p>
+                    Welcome, <span id="adminUsernameDisplay">Admin</span>!
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </p>
+            </div>
+
+            <div class="debug-info" id="debugInfo">
+                <h3>Debug Information</h3>
+                <p><strong>API Base:</strong> <span id="apiBase">http://127.0.0.1:8001</span></p>
+                <p><strong>Token Status:</strong> <span id="tokenStatus">Not loaded</span></p>
+                <p><strong>Last API Call:</strong> <span id="lastApiCall">None</span></p>
+                <p><strong>API Response:</strong> <span id="apiResponse">None</span></p>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✅ Dashboard successfully loaded! All APIs are working correctly.
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSkills">-</div>
+                    <div class="stat-label">Total Skills</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">-</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeSkills">-</div>
+                    <div class="stat-label">Active Skills</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="categories">-</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            </div>
+
+            <div class="card skills-card">
+                <h2>Available Skills</h2>
+                <button class="refresh-btn" onclick="loadSkills()">Refresh Skills</button>
+                <div class="table-container">
+                    <table id="skillsTable">
+                        <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th>Category</th>
+                                <th>Owner</th>
+                                <th>Level</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="skillsTableBody">
+                            <tr>
+                                <td colspan="5" class="loading">Loading skills...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8001';
+        let adminToken = null;
+
+        // Check for existing token on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkExistingAuth();
+        });
+
+        function updateDebugInfo(message, response) {
+            document.getElementById('lastApiCall').textContent = message;
+            document.getElementById('apiResponse').textContent = response ? JSON.stringify(response).substring(0, 100) + '...' : 'None';
+        }
+
+        function checkExistingAuth() {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                adminToken = token;
+                document.getElementById('tokenStatus').textContent = 'Token found in localStorage';
+                verifyToken();
+            } else {
+                document.getElementById('tokenStatus').textContent = 'No token found';
+            }
+        }
+
+        async function adminLogin() {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const authStatus = document.getElementById('authStatus');
+            const authSection = document.getElementById('authSection');
+            const dashboardContent = document.getElementById('dashboardContent');
+
+            if (!username || !password) {
+                authStatus.innerHTML = '<span style="color: #e53e3e;">Please enter username and password</span>';
+                return;
+            }
+
+            authStatus.innerHTML = '<span style="color: #d69e2e;">Authenticating...</span>';
+            updateDebugInfo('Admin login attempt', null);
+
+            try {
+                const response = await fetch(API_BASE + '/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                updateDebugInfo('Admin login response', data);
+
+                if (response.ok) {
+                    // Login successful
+                    adminToken = data.access_token;
+                    localStorage.setItem('admin_token', adminToken);
+                    
+                    authStatus.innerHTML = '<span style="color: #38a169;">✅ Login successful!</span>';
+                    document.getElementById('tokenStatus').textContent = 'Token received and stored';
+                    
+                    // Show dashboard, hide auth section
+                    authSection.classList.add('hidden');
+                    dashboardContent.classList.remove('hidden');
+                    document.getElementById('adminUsernameDisplay').textContent = data.admin_user.username;
+                    
+                    // Load dashboard data
+                    loadDashboardData();
+                } else {
+                    // Login failed
+                    authStatus.innerHTML = '<span style="color: #e53e3e;">❌ ' + (data.detail || 'Login failed') + '</span>';
+                    document.getElementById('tokenStatus').textContent = 'Login failed';
+                }
+
+            } catch (error) {
+                authStatus.innerHTML = '<span style="color: #e53e3e;">❌ Login failed: ' + error.message + '</span>';
+                updateDebugInfo('Login error', error.message);
+                console.error('Login error:', error);
+            }
+        }
+
+        async function verifyToken() {
+            try {
+                const response = await fetch(API_BASE + '/admin/verify', {
+                    headers: getAuthHeaders()
+                });
+
+                const data = await response.json();
+                updateDebugInfo('Token verification', data);
+
+                if (response.ok) {
+                    if (data.valid) {
+                        // Token is valid, show dashboard
+                        document.getElementById('authSection').classList.add('hidden');
+                        document.getElementById('dashboardContent').classList.remove('hidden');
+                        document.getElementById('adminUsernameDisplay').textContent = data.username;
+                        document.getElementById('tokenStatus').textContent = 'Token verified and valid';
+                        loadDashboardData();
+                    } else {
+                        // Token invalid, remove it
+                        logout();
+                    }
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                updateDebugInfo('Token verification error', error.message);
+                console.error('Token verification error:', error);
+                logout();
+            }
+        }
+
+        function logout() {
+            adminToken = null;
+            localStorage.removeItem('admin_token');
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
+            document.getElementById('authStatus').innerHTML = 'Enter admin credentials to access dashboard';
+            document.getElementById('adminUsername').value = 'admin';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('tokenStatus').textContent = 'Logged out';
+        }
+
+        async function loadDashboardData() {
+            await Promise.all([
+                loadStats(),
+                loadSkills()
+            ]);
+        }
+
+        async function loadStats() {
+            try {
+                // Load skills count
+                const skillsResponse = await fetch(API_BASE + '/api/skills/', {
+                    headers: getAuthHeaders()
+                });
+                
+                if (skillsResponse.ok) {
+                    const skills = await skillsResponse.json();
+                    document.getElementById('totalSkills').textContent = Array.isArray(skills) ? skills.length : 0;
+                    
+                    // Count active skills
+                    const activeSkills = Array.isArray(skills) ? 
+                        skills.filter(skill => skill.is_active).length : 0;
+                    document.getElementById('activeSkills').textContent = activeSkills;
+                    
+                    // Count unique categories
+                    const categories = new Set();
+                    if (Array.isArray(skills)) {
+                        skills.forEach(skill => {
+                            if (skill.category) categories.add(skill.category);
+                        });
+                    }
+                    document.getElementById('categories').textContent = categories.size;
+                    
+                    // Count unique users
+                    const users = new Set();
+                    if (Array.isArray(skills)) {
+                        skills.forEach(skill => {
+                            if (skill.owner && skill.owner.username) users.add(skill.owner.username);
+                        });
+                    }
+                    document.getElementById('totalUsers').textContent = users.size;
+                    
+                    updateDebugInfo('Stats loaded', {
+                        skills: skills.length,
+                        active: activeSkills,
+                        categories: categories.size,
+                        users: users.size
+                    });
+                } else {
+                    throw new Error('HTTP ' + skillsResponse.status + ': ' + skillsResponse.statusText);
+                }
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                updateDebugInfo('Stats loading error', error.message);
+                document.getElementById('totalSkills').textContent = '0';
+                document.getElementById('totalUsers').textContent = '0';
+                document.getElementById('activeSkills').textContent = '0';
+                document.getElementById('categories').textContent = '0';
+            }
+        }
+
+        async function loadSkills() {
+            try {
+                const response = await fetch(API_BASE + '/api/skills/', {
+                    headers: getAuthHeaders()
+                });
+                const tbody = document.getElementById('skillsTableBody');
+                
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+
+                const skills = await response.json();
+                updateDebugInfo('Skills loaded', {count: skills.length});
+                
+                if (!Array.isArray(skills) || skills.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #718096;">No skills found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = skills.map(function(skill) {
+                    return '<tr>' +
+                        '<td>' + (skill.title || 'Untitled') + '</td>' +
+                        '<td>' + (skill.category || 'Uncategorized') + '</td>' +
+                        '<td>' + (skill.owner ? skill.owner.username : 'Unknown') + '</td>' +
+                        '<td>' + (skill.proficiency_level || 'Not specified') + '</td>' +
+                        '<td>' +
+                            '<span class="status-badge ' + (skill.is_active ? 'status-accepted' : 'status-rejected') + '">' +
+                                (skill.is_active ? 'Active' : 'Inactive') +
+                            '</span>' +
+                        '</td>' +
+                    '</tr>';
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading skills:', error);
+                updateDebugInfo('Skills loading error', error.message);
+                document.getElementById('skillsTableBody').innerHTML = 
+                    '<tr><td colspan="5" class="error">Failed to load skills: ' + error.message + '</td></tr>';
+            }
+        }
+
+        function getAuthHeaders() {
+            if (!adminToken) {
+                throw new Error('No admin token available');
+            }
+            return {
+                'Authorization': 'Bearer ' + adminToken,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return 'Invalid Date';
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(function() {
+            if (adminToken) {
+                loadDashboardData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

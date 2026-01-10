@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Skill Exchange</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #4a5568;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #718096;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.3);
+        }
+
+        .login-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status-error {
+            background: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #feb2b2;
+        }
+
+        .status-loading {
+            background: #ebf8ff;
+            color: #3182ce;
+            border: 1px solid #90cdf4;
+        }
+
+        .admin-credentials {
+            background: #fef5e7;
+            border: 1px solid #f6e05e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .admin-credentials h3 {
+            color: #d69e2e;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .admin-credentials p {
+            color: #744210;
+            margin: 5px 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4299e1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Admin Login</h1>
+            <p>Skill Exchange Platform</p>
+        </div>
+
+        <div class="admin-credentials">
+            <h3>🔐 Admin Credentials</h3>
+            <p><strong>Username:</strong> admin</p>
+            <p><strong>Password:</strong> admin123</p>
+            <p><strong>Email:</strong> admin@example.com</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="admin" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" value="admin123" required>
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                Login to Admin Dashboard
+            </button>
+        </form>
+
+        <div id="statusMessage" class="status-message hidden"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-focus on username field
+            document.getElementById('username').focus();
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            if (!username || !password) {
+                showStatus('Please enter username and password', 'error');
+                return;
+            }
+            
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="loading-spinner"></span>Logging in...';
+            showStatus('Authenticating...', 'loading');
+            
+            try {
+                const response = await fetch(API_BASE + '/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Login successful
+                    localStorage.setItem('admin_token', data.access_token);
+                    localStorage.setItem('admin_user', JSON.stringify(data.admin_user));
+                    
+                    showStatus('Login successful! Redirecting...', 'success');
+                    
+                    // Redirect to admin dashboard
+                    setTimeout(() => {
+                        window.location.href = 'http://127.0.0.1:3008/admin_simple.html';
+                    }, 1500);
+                    
+                } else {
+                    // Login failed
+                    showStatus(data.detail || 'Login failed', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = 'Login to Admin Dashboard';
+                }
+                
+            } catch (error) {
+                showStatus('Network error: ' + error.message, 'error');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Login to Admin Dashboard';
+            }
+        });
+        
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message status-' + type;
+            statusMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

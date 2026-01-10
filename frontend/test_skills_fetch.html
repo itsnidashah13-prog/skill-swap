@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Fetch Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        button { padding: 10px 20px; margin: 5px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .skill-card { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Skills Fetch Test</h1>
+    
+    <div>
+        <h3>Test Public Skills Endpoint</h3>
+        <button onclick="testSkillsFetch()">Test /skills/ (No Auth Required)</button>
+        <button onclick="testSkillsFetchWithAuth()">Test /skills/ (With Auth)</button>
+        <button onclick="testBackendHealth()">Test Backend Health</button>
+        <button onclick="testCORS()">Test CORS</button>
+    </div>
+    
+    <div id="result" class="result">Click buttons above to test skills fetching...</div>
+    <div id="skills-container"></div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        function updateResult(content, isError = false) {
+            const result = document.getElementById('result');
+            result.className = isError ? 'result error' : 'result success';
+            result.innerHTML = content;
+        }
+        
+        async function testBackendHealth() {
+            updateResult('Testing backend health...');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateResult(`
+                        <h3>✅ Backend Health Check Success</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Response:</strong> ${JSON.stringify(data)}</p>
+                        <p>Backend is running and accessible!</p>
+                    `);
+                } else {
+                    updateResult(`
+                        <h3>❌ Backend Health Check Failed</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p>Backend may not be running on ${API_BASE_URL}</p>
+                    `, true);
+                }
+            } catch (error) {
+                updateResult(`
+                    <h3>❌ Backend Connection Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>URL:</strong> ${API_BASE_URL}/health</p>
+                    <p>Check if backend is running on port 8000</p>
+                `, true);
+            }
+        }
+        
+        async function testCORS() {
+            updateResult('Testing CORS...');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('CORS Test Response Headers:', [...response.headers.entries()]);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const corsHeaders = {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                        'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+                    };
+                    
+                    updateResult(`
+                        <h3>✅ CORS Test Success</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Response:</strong> ${JSON.stringify(data)}</p>
+                        <p><strong>CORS Headers:</strong></p>
+                        <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                        <p><strong>Your Origin:</strong> ${window.location.origin}</p>
+                    `);
+                } else {
+                    updateResult(`
+                        <h3>❌ CORS Test Failed</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p>CORS may not be properly configured</p>
+                    `, true);
+                }
+            } catch (error) {
+                updateResult(`
+                    <h3>❌ CORS Test Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>This is likely a CORS issue</p>
+                `, true);
+            }
+        }
+        
+        async function testSkillsFetch() {
+            updateResult('Testing public skills endpoint (no authentication)...');
+            document.getElementById('skills-container').innerHTML = '';
+            
+            try {
+                console.log('🔍 Testing skills fetch without authentication');
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('🔍 Skills response status:', response.status);
+                console.log('🔍 Skills response ok:', response.ok);
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    console.log('🔍 Skills data received:', skills);
+                    
+                    updateResult(`
+                        <h3>✅ Skills Fetch Success!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Skills Count:</strong> ${skills.length}</p>
+                        <p>Public skills endpoint working without authentication!</p>
+                    `);
+                    
+                    // Display skills
+                    const container = document.getElementById('skills-container');
+                    container.innerHTML = '<h3>Skills Retrieved:</h3>';
+                    
+                    if (skills.length === 0) {
+                        container.innerHTML += '<p>No skills found in database.</p>';
+                    } else {
+                        skills.forEach(skill => {
+                            const skillCard = document.createElement('div');
+                            skillCard.className = 'skill-card';
+                            skillCard.innerHTML = `
+                                <h4>${skill.title}</h4>
+                                <p><strong>Category:</strong> ${skill.category}</p>
+                                <p><strong>Description:</strong> ${skill.description}</p>
+                                <p><strong>Proficiency:</strong> ${skill.proficiency_level}</p>
+                                <p><strong>Owner:</strong> ${skill.owner ? skill.owner.username : 'Unknown'}</p>
+                            `;
+                            container.appendChild(skillCard);
+                        });
+                    }
+                } else {
+                    const error = await response.text();
+                    console.error('🔍 Skills fetch error:', error);
+                    updateResult(`
+                        <h3>❌ Skills Fetch Failed</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Error:</strong> ${error}</p>
+                        <p><strong>URL:</strong> ${API_BASE_URL}/skills/</p>
+                    `, true);
+                }
+            } catch (error) {
+                console.error('🔍 Skills fetch network error:', error);
+                updateResult(`
+                    <h3>❌ Skills Fetch Network Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>URL:</strong> ${API_BASE_URL}/skills/</p>
+                    <p><strong>Possible Causes:</strong></p>
+                    <ul>
+                        <li>Backend not running on port 8000</li>
+                        <li>CORS not configured properly</li>
+                        <li>Network connectivity issues</li>
+                        <li>Firewall blocking the request</li>
+                    </ul>
+                `, true);
+            }
+        }
+        
+        async function testSkillsFetchWithAuth() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            
+            if (!token) {
+                updateResult(`
+                    <h3>⚠️ No Token Found</h3>
+                    <p>Please login first to test with authentication.</p>
+                    <p>You can test without authentication using the button above.</p>
+                `, true);
+                return;
+            }
+            
+            updateResult('Testing skills endpoint with authentication...');
+            document.getElementById('skills-container').innerHTML = '';
+            
+            try {
+                console.log('🔍 Testing skills fetch with authentication');
+                console.log('🔍 Token:', token.substring(0, 50) + '...');
+                
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                console.log('🔍 Auth skills response status:', response.status);
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    updateResult(`
+                        <h3>✅ Skills Fetch with Auth Success!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Skills Count:</strong> ${skills.length}</p>
+                        <p>Skills endpoint working with authentication!</p>
+                    `);
+                } else {
+                    const error = await response.text();
+                    updateResult(`
+                        <h3>❌ Skills Fetch with Auth Failed</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Error:</strong> ${error}</p>
+                        <p>Token may be expired or invalid.</p>
+                    `, true);
+                }
+            } catch (error) {
+                updateResult(`
+                    <h3>❌ Auth Skills Fetch Network Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `, true);
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🔍 Page loaded, current origin:', window.location.origin);
+            console.log('🔍 API Base URL:', API_BASE_URL);
+        });
+    </script>
+</body>
+</html>

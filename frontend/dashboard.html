@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Community Skill Swap</title>
+    <link rel="stylesheet" href="style-new.css">
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Welcome, <span id="user-name">User</span>!</h1>
+            <nav>
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="my-skills.html" class="nav-link">My Skills</a>
+                <a href="#" onclick="logout()" class="nav-link">Logout</a>
+            </nav>
+        </header>
+
+        <main class="dashboard-content">
+            <section class="stats-section">
+                <h2>Your Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Skills Offered</h3>
+                        <p id="skills-count">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Exchange Requests</h3>
+                        <p id="requests-count">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Unread Notifications</h3>
+                        <p id="notifications-count">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="notifications-section">
+                <h2>Recent Notifications</h2>
+                <div id="notifications-list" class="notifications-list">
+                    <p class="no-data">No notifications yet</p>
+                </div>
+            </section>
+
+            <section class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button onclick="window.location.href='add-skill.html'" class="btn btn-primary">
+                        Add New Skill
+                    </button>
+                    <button onclick="window.location.href='my-skills.html'" class="btn btn-secondary">
+                        My Skills
+                    </button>
+                    <button onclick="window.location.href='exchanges.html'" class="btn btn-secondary">
+                        My Exchange Requests
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script-new.js"></script>
+</body>
+</html>

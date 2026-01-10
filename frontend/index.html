@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Skill Swap Platform</title>
+    <link rel="stylesheet" href="style_fixed.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <h1>Skill Swap</h1>
+                <ul class="nav-menu">
+                    <li><a href="#" onclick="showPage('home')">Home</a></li>
+                    <li><a href="#" onclick="showPage('skills')">Skills</a></li>
+                    <li><a href="#" onclick="showPage('my-skills')">My Skills</a></li>
+                    <li><a href="#" onclick="showPage('requests')">Requests</a></li>
+                    <li><a href="#" id="login-btn">Login</a></li>
+                    <li><a href="#" id="register-btn">Register</a></li>
+                    <li><a href="#" id="logout-btn" style="display:none;">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="page-section active">
+            <div class="container">
+                <h2>Welcome to Community Skill Swap</h2>
+                <p>Share your skills and learn from others in your community</p>
+                <div class="cta-buttons">
+                    <button class="btn primary" onclick="showPage('skills')">Get Started</button>
+                    <button class="btn secondary" onclick="showPage('skills')">Browse Skills</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login" class="page-section">
+            <div class="container">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn primary">Login</button>
+                </form>
+                <p>Don't have an account? <a href="#" onclick="showPage('register')">Register here</a></p>
+            </div>
+        </section>
+
+        <!-- Register Section -->
+        <section id="register" class="page-section">
+            <div class="container">
+                <h2>Register</h2>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-fullname">Full Name</label>
+                        <input type="text" id="register-fullname" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-bio">Bio (Optional)</label>
+                        <textarea id="register-bio" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn primary">Register</button>
+                </form>
+                <p>Already have an account? <a href="#" onclick="showPage('login')">Login here</a></p>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="page-section">
+            <div class="container">
+                <h2>Available Skills</h2>
+                <div class="filters">
+                    <select id="category-filter">
+                        <option value="">All Categories</option>
+                        <option value="Programming">Programming</option>
+                        <option value="Design">Design</option>
+                        <option value="Music">Music</option>
+                        <option value="Language">Language</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <button class="btn secondary" onclick="loadSkills()">Filter</button>
+                </div>
+                <div id="skills-list" class="skills-grid">
+                    <!-- Skills will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- My Skills Section -->
+        <section id="my-skills" class="page-section">
+            <div class="container">
+                <h2>My Skills</h2>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn primary" onclick="showAddSkillForm()">Add New Skill</button>
+                    <button class="btn secondary" onclick="testLocalStorage()" style="margin-left: 10px;">Test LocalStorage</button>
+                    <button class="btn secondary" onclick="clearLocalStorage()" style="margin-left: 10px;">Clear LocalStorage</button>
+                </div>
+                <div id="my-skills-list" class="skills-grid">
+                    <!-- User's skills will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Skill Form (Modal) -->
+        <div id="add-skill-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Add New Skill</h2>
+                <form id="add-skill-form" onsubmit="handleAddSkill(event)">
+                    <div class="form-group">
+                        <label for="skill-title">Title</label>
+                        <input type="text" id="skill-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill-description">Description</label>
+                        <textarea id="skill-description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill-category">Category</label>
+                        <select id="skill-category" required>
+                            <option value="">Select Category</option>
+                            <option value="Programming">Programming</option>
+                            <option value="Design">Design</option>
+                            <option value="Music">Music</option>
+                            <option value="Language">Language</option>
+                            <option value="Cooking">Cooking</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill-proficiency">Proficiency Level</label>
+                        <select id="skill-proficiency" required>
+                            <option value="">Select Level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Expert">Expert</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn primary">Add Skill</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Requests Section -->
+        <section id="requests" class="page-section">
+            <div class="container">
+                <h2>Skill Exchange Requests</h2>
+                <div id="requests-list" class="requests-list">
+                    <!-- Requests will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Request Exchange Modal -->
+        <div id="request-exchange-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Request Skill Exchange</h2>
+                <form id="request-exchange-form">
+                    <input type="hidden" id="request-skill-id">
+                    <div class="form-group">
+                        <label for="request-message">Message</label>
+                        <textarea id="request-message" rows="4" placeholder="Introduce yourself and explain why you'd like to learn this skill..." required></textarea>
+                    </div>
+                    <button type="button" class="btn primary" onclick="sendSkillRequest()">Send Request</button>
+                </form>
+                
+                <!-- Alternative direct button for testing -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                    <h4>Direct Send Request (New Function)</h4>
+                    <div class="form-group">
+                        <label for="direct-message">Message:</label>
+                        <textarea id="direct-message" rows="3" placeholder="Type your message here..." required></textarea>
+                    </div>
+                    <button type="button" class="btn secondary" onclick="sendSkillRequest()">Send Skill Request</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="message" class="message"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

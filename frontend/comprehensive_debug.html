@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Debug - Skills Loading Issue</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .debug-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px;
+            background: white;
+        }
+        .result { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .warning { background: #fff3e0; color: #f57c00; }
+        button { 
+            padding: 10px 20px; 
+            margin: 5px; 
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-primary { background: #1976d2; color: white; }
+        .btn-secondary { background: #757575; color: white; }
+        .btn-danger { background: #d32f2f; color: white; }
+        h1, h2 { color: #333; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-ok { background: #4caf50; }
+        .status-error { background: #f44336; }
+        .status-warning { background: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Comprehensive Debug - Skills Loading Issue</h1>
+    
+    <div class="debug-section">
+        <h2>1. Authentication Status</h2>
+        <button onclick="checkAuth()" class="btn-primary">Check Auth Status</button>
+        <button onclick="clearStorage()" class="btn-danger">Clear Storage</button>
+        <div id="auth-result" class="result">Click "Check Auth Status" to test...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>2. Backend Connection Test</h2>
+        <button onclick="testBackendConnection()" class="btn-primary">Test Backend Connection</button>
+        <div id="backend-result" class="result">Click to test backend connection...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>3. Skills Endpoint Test (Unauthenticated)</h2>
+        <button onclick="testSkillsUnauth()" class="btn-secondary">Test /skills/ (No Auth)</button>
+        <div id="skills-unauth-result" class="result">Click to test unauthenticated skills endpoint...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>4. Skills Endpoint Test (Authenticated)</h2>
+        <button onclick="testSkillsAuth()" class="btn-primary">Test /skills/ (With Auth)</button>
+        <div id="skills-auth-result" class="result">Click to test authenticated skills endpoint...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>5. My Skills Endpoint Test</h2>
+        <button onclick="testMySkills()" class="btn-primary">Test /skills/my-skills</button>
+        <div id="my-skills-result" class="result">Click to test my skills endpoint...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>6. CORS and Headers Test</h2>
+        <button onclick="testCORS()" class="btn-primary">Test CORS Headers</button>
+        <div id="cors-result" class="result">Click to test CORS and headers...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>7. Network Diagnostics</h2>
+        <button onclick="testNetwork()" class="btn-primary">Test Network</button>
+        <div id="network-result" class="result">Click to test network connectivity...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>8. Browser Console Log</h2>
+        <button onclick="clearConsole()" class="btn-secondary">Clear Console</button>
+        <button onclick="enableConsoleLogging()" class="btn-primary">Enable Debug Logging</button>
+        <div id="console-result" class="result">Console logging will appear here...</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        let debugEnabled = false;
+
+        // Override console.log to capture logs
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        
+        function enableConsoleLogging() {
+            debugEnabled = true;
+            console.log = function(...args) {
+                originalConsoleLog.apply(console, args);
+                if (debugEnabled) {
+                    const logDiv = document.getElementById('console-result');
+                    logDiv.textContent += 'LOG: ' + args.join(' ') + '\n';
+                }
+            };
+            
+            console.error = function(...args) {
+                originalConsoleError.apply(console, args);
+                if (debugEnabled) {
+                    const logDiv = document.getElementById('console-result');
+                    logDiv.textContent += 'ERROR: ' + args.join(' ') + '\n';
+                }
+            };
+            
+            document.getElementById('console-result').textContent = 'Console logging enabled. All logs will appear here.\n';
+        }
+
+        function clearConsole() {
+            document.getElementById('console-result').textContent = 'Console cleared.\n';
+        }
+
+        function updateResult(elementId, content, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = content;
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            const user = localStorage.getItem('currentUser');
+            const result = document.getElementById('auth-result');
+            
+            if (token && user) {
+                const userObj = JSON.parse(user);
+                updateResult('auth-result', `
+<span class="status-indicator status-ok"></span>AUTHENTICATION SUCCESS
+Token: ${token.substring(0, 50)}...
+User: ${userObj.username} (${userObj.full_name})
+User ID: ${userObj.id}
+Token Length: ${token.length}
+                `.trim(), 'success');
+            } else {
+                updateResult('auth-result', `
+<span class="status-indicator status-error"></span>AUTHENTICATION FAILED
+Token: ${token ? 'Present' : 'Missing'}
+User: ${user ? 'Present' : 'Missing'}
+                `.trim(), 'error');
+            }
+        }
+
+        async function testBackendConnection() {
+            const result = document.getElementById('backend-result');
+            result.textContent = 'Testing backend connection...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/docs`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                updateResult('backend-result', `
+<span class="status-indicator ${response.ok ? 'status-ok' : 'status-error'}"></span>BACKEND CONNECTION
+Status: ${response.status} ${response.statusText}
+URL: ${API_BASE_URL}/docs
+CORS Mode: cors
+Response Headers: ${JSON.stringify(Object.fromEntries(response.headers), null, 2)}
+                `.trim(), response.ok ? 'success' : 'error');
+            } catch (error) {
+                updateResult('backend-result', `
+<span class="status-indicator status-error"></span>BACKEND CONNECTION FAILED
+Error: ${error.message}
+URL: ${API_BASE_URL}/docs
+This usually means:
+- Backend server is not running
+- Wrong port number
+- CORS issues
+- Network connectivity problems
+                `.trim(), 'error');
+            }
+        }
+
+        async function testSkillsUnauth() {
+            const result = document.getElementById('skills-unauth-result');
+            result.textContent = 'Testing unauthenticated skills endpoint...';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const endTime = Date.now();
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    updateResult('skills-unauth-result', `
+<span class="status-indicator status-ok"></span>UNAUTHENTICATED SKILLS SUCCESS
+Status: ${response.status} ${response.statusText}
+Response Time: ${endTime - startTime}ms
+Skills Count: ${skills.length}
+First Skill: ${skills.length > 0 ? skills[0].title : 'None'}
+Data Type: ${Array.isArray(skills) ? 'Array' : typeof skills}
+                    `.trim(), 'success');
+                } else {
+                    const errorText = await response.text();
+                    updateResult('skills-unauth-result', `
+<span class="status-indicator status-error"></span>UNAUTHENTICATED SKILLS FAILED
+Status: ${response.status} ${response.statusText}
+Error: ${errorText}
+                    `.trim(), 'error');
+                }
+            } catch (error) {
+                updateResult('skills-unauth-result', `
+<span class="status-indicator status-error"></span>UNAUTHENTICATED SKILLS ERROR
+Error: ${error.message}
+URL: ${API_BASE_URL}/skills/
+                `.trim(), 'error');
+            }
+        }
+
+        async function testSkillsAuth() {
+            const result = document.getElementById('skills-auth-result');
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                updateResult('skills-auth-result', `
+<span class="status-indicator status-warning"></span>AUTHENTICATED SKILLS TEST
+No authentication token found. Please login first.
+                `.trim(), 'warning');
+                return;
+            }
+            
+            result.textContent = 'Testing authenticated skills endpoint...';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const endTime = Date.now();
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    updateResult('skills-auth-result', `
+<span class="status-indicator status-ok"></span>AUTHENTICATED SKILLS SUCCESS
+Status: ${response.status} ${response.statusText}
+Response Time: ${endTime - startTime}ms
+Skills Count: ${skills.length}
+First Skill: ${skills.length > 0 ? skills[0].title : 'None'}
+Data Type: ${Array.isArray(skills) ? 'Array' : typeof skills}
+Auth Header: Bearer ${token.substring(0, 30)}...
+                    `.trim(), 'success');
+                } else {
+                    const errorText = await response.text();
+                    updateResult('skills-auth-result', `
+<span class="status-indicator status-error"></span>AUTHENTICATED SKILLS FAILED
+Status: ${response.status} ${response.statusText}
+Error: ${errorText}
+Auth Header: Bearer ${token.substring(0, 30)}...
+                    `.trim(), 'error');
+                }
+            } catch (error) {
+                updateResult('skills-auth-result', `
+<span class="status-indicator status-error"></span>AUTHENTICATED SKILLS ERROR
+Error: ${error.message}
+URL: ${API_BASE_URL}/skills/
+                `.trim(), 'error');
+            }
+        }
+
+        async function testMySkills() {
+            const result = document.getElementById('my-skills-result');
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                updateResult('my-skills-result', `
+<span class="status-indicator status-warning"></span>MY SKILLS TEST
+No authentication token found. Please login first.
+                `.trim(), 'warning');
+                return;
+            }
+            
+            result.textContent = 'Testing my skills endpoint...';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${API_BASE_URL}/skills/my-skills`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const endTime = Date.now();
+                
+                if (response.ok) {
+                    const skills = await response.json();
+                    updateResult('my-skills-result', `
+<span class="status-indicator status-ok"></span>MY SKILLS SUCCESS
+Status: ${response.status} ${response.statusText}
+Response Time: ${endTime - startTime}ms
+My Skills Count: ${skills.length}
+First Skill: ${skills.length > 0 ? skills[0].title : 'None'}
+Data Type: ${Array.isArray(skills) ? 'Array' : typeof skills}
+                    `.trim(), 'success');
+                } else {
+                    const errorText = await response.text();
+                    updateResult('my-skills-result', `
+<span class="status-indicator status-error"></span>MY SKILLS FAILED
+Status: ${response.status} ${response.statusText}
+Error: ${errorText}
+                    `.trim(), 'error');
+                }
+            } catch (error) {
+                updateResult('my-skills-result', `
+<span class="status-indicator status-error"></span>MY SKILLS ERROR
+Error: ${error.message}
+URL: ${API_BASE_URL}/skills/my-skills
+                `.trim(), 'error');
+            }
+        }
+
+        async function testCORS() {
+            const result = document.getElementById('cors-result');
+            result.textContent = 'Testing CORS headers...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/skills/`, {
+                    method: 'OPTIONS',
+                    mode: 'cors'
+                });
+                
+                updateResult('cors-result', `
+<span class="status-indicator ${response.ok ? 'status-ok' : 'status-warning'}"></span>CORS TEST
+Status: ${response.status} ${response.statusText}
+CORS Headers:
+Access-Control-Allow-Origin: ${response.headers.get('Access-Control-Allow-Origin')}
+Access-Control-Allow-Methods: ${response.headers.get('Access-Control-Allow-Methods')}
+Access-Control-Allow-Headers: ${response.headers.get('Access-Control-Allow-Headers')}
+All Headers: ${JSON.stringify(Object.fromEntries(response.headers), null, 2)}
+                `.trim(), response.ok ? 'success' : 'warning');
+            } catch (error) {
+                updateResult('cors-result', `
+<span class="status-indicator status-error"></span>CORS TEST FAILED
+Error: ${error.message}
+                `.trim(), 'error');
+            }
+        }
+
+        async function testNetwork() {
+            const result = document.getElementById('network-result');
+            result.textContent = 'Testing network connectivity...';
+            
+            try {
+                // Test basic connectivity
+                const response = await fetch(`${API_BASE_URL}/docs`, {
+                    method: 'HEAD',
+                    mode: 'cors'
+                });
+                
+                const networkInfo = {
+                    online: navigator.onLine,
+                    connection: navigator.connection ? {
+                        effectiveType: navigator.connection.effectiveType,
+                        downlink: navigator.connection.downlink,
+                        rtt: navigator.connection.rtt
+                    } : 'Not available',
+                    userAgent: navigator.userAgent.substring(0, 100) + '...'
+                };
+                
+                updateResult('network-result', `
+<span class="status-indicator status-ok"></span>NETWORK TEST
+Backend Reachable: ${response.ok ? 'Yes' : 'No'}
+Browser Online: ${networkInfo.online}
+Connection: ${JSON.stringify(networkInfo.connection, null, 2)}
+User Agent: ${networkInfo.userAgent}
+Current URL: ${window.location.href}
+API Base URL: ${API_BASE_URL}
+                `.trim(), response.ok ? 'success' : 'error');
+            } catch (error) {
+                updateResult('network-result', `
+<span class="status-indicator status-error"></span>NETWORK TEST FAILED
+Error: ${error.message}
+Browser Online: ${navigator.onLine}
+This indicates a network connectivity issue.
+                `.trim(), 'error');
+            }
+        }
+
+        function clearStorage() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            updateResult('auth-result', 'Storage cleared. Please login again.', 'warning');
+        }
+
+        // Auto-check auth on page load
+        window.onload = function() {
+            checkAuth();
+            enableConsoleLogging();
+        };
+    </script>
+</body>
+</html>

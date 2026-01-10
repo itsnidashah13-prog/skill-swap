@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple API Test</h1>
+    <button onclick="testFetch()">Test Fetch</button>
+    <div id="result"></div>
+
+    <script>
+        async function testFetch() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing fetch to http://localhost:8000/skills/...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/skills/');
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Data received:', data);
+                    console.log('Data length:', data.length);
+                    console.log('Data type:', Array.isArray(data) ? 'array' : typeof data);
+                    
+                    result.innerHTML = `
+                        <h2>SUCCESS!</h2>
+                        <p>Status: ${response.status}</p>
+                        <p>Data Length: ${data.length}</p>
+                        <p>First Item: ${data.length > 0 ? data[0].title : 'None'}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    
+                    if (data.length === 0) {
+                        alert('EMPTY ARRAY RECEIVED!');
+                    }
+                } else {
+                    result.innerHTML = `<h2>ERROR: ${response.status}</h2><p>${await response.text()}</p>`;
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                result.innerHTML = `<h2>NETWORK ERROR: ${error.message}</h2>`;
+            }
+        }
+    </script>
+</body>
+</html>
