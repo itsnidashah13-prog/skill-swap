@@ -138,6 +138,219 @@ h2 {
     transform: translateY(-2px);
 }
 
+/* AI Features Styling */
+.ai-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ai-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.ai-buttons {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.ai-button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.ai-analysis-result {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.ai-analysis-result h3 {
+    color: #333;
+    margin: 1rem 0 0.5rem 0;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.25rem;
+}
+
+.ai-analysis-result h3:first-child {
+    margin-top: 0;
+}
+
+.keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.keyword {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.ai-actions {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.ai-status-result {
+    padding: 1rem;
+}
+
+.status-item {
+    margin: 0.75rem 0;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #667eea;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-online {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-offline {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.ai-error {
+    text-align: center;
+    padding: 2rem;
+    color: #721c24;
+}
+
+.ai-error p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* AI Loading Animation */
+.ai-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: ai-spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes ai-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* AI Modal Enhancements */
+.modal-content .ai-analysis-result {
+    text-align: left;
+}
+
+.modal-content .ai-analysis-result ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.modal-content .ai-analysis-result li {
+    margin: 0.25rem 0;
+    color: #666;
+}
+
+/* AI Feature Highlights */
+.ai-feature-highlight {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2d3436;
+    margin: 0.25rem;
+    display: inline-block;
+}
+
+/* AI Suggestions */
+.ai-suggestion {
+    background: #e8f5e8;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    position: relative;
+}
+
+.ai-suggestion::before {
+    content: "🤖";
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.ai-suggestion-content {
+    margin-left: 1.5rem;
+    color: #155724;
+}
+
+/* AI Confidence Indicators */
+.ai-confidence {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.ai-confidence.high {
+    background: #d4edda;
+    color: #155724;
+}
+
+.ai-confidence.medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.ai-confidence.low {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 /* Forms */
 .form-group {
     margin-bottom: 1.5rem;

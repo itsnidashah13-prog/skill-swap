@@ -1175,3 +1175,486 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// AI-Powered Features
+async function analyzeSkillWithAI(title, description, category) {
+    console.log('🤖 Analyzing skill with AI:', title);
+    
+    const token = localStorage.getItem('accessToken') || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('authToken') || 
+                  localStorage.getItem('token');
+    
+    if (!token) {
+        showMessage('Please login to use AI features', 'error');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/analyze-skill`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                title: title,
+                description: description,
+                category: category
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 AI Analysis result:', result);
+            return result.data;
+        } else {
+            console.error('🤖 AI analysis failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('🤖 AI analysis error:', error);
+        return null;
+    }
+}
+
+async function categorizeSkillWithAI(title, description) {
+    console.log('🤖 Categorizing skill with AI:', title);
+    
+    const token = localStorage.getItem('accessToken') || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('authToken') || 
+                  localStorage.getItem('token');
+    
+    if (!token) {
+        showMessage('Please login to use AI features', 'error');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/categorize-skill`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                title: title,
+                description: description
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 AI categorization result:', result);
+            return result.data;
+        } else {
+            console.error('🤖 AI categorization failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('🤖 AI categorization error:', error);
+        return null;
+    }
+}
+
+async function enhanceSkillDescription(title, description) {
+    console.log('🤖 Enhancing skill description with AI:', title);
+    
+    const token = localStorage.getItem('accessToken') || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('authToken') || 
+                  localStorage.getItem('token');
+    
+    if (!token) {
+        showMessage('Please login to use AI features', 'error');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/enhance-description`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                title: title,
+                description: description
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 AI enhancement result:', result);
+            return result.data;
+        } else {
+            console.error('🤖 AI enhancement failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('🤖 AI enhancement error:', error);
+        return null;
+    }
+}
+
+async function getMySkillsAnalysis() {
+    console.log('🤖 Getting my skills analysis with AI...');
+    
+    const token = localStorage.getItem('accessToken') || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('authToken') || 
+                  localStorage.getItem('token');
+    
+    if (!token) {
+        showMessage('Please login to use AI features', 'error');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/my-skills-analysis`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 My skills analysis result:', result);
+            return result.data;
+        } else {
+            console.error('🤖 My skills analysis failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('🤖 My skills analysis error:', error);
+        return null;
+    }
+}
+
+async function findSkillMatches(targetSkills) {
+    console.log('🤖 Finding skill matches with AI...');
+    
+    const token = localStorage.getItem('accessToken') || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('authToken') || 
+                  localStorage.getItem('token');
+    
+    if (!token) {
+        showMessage('Please login to use AI features', 'error');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/find-matches`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                target_skills: targetSkills
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 Skill matches result:', result);
+            return result.data;
+        } else {
+            console.error('🤖 Skill matching failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('🤖 Skill matching error:', error);
+        return null;
+    }
+}
+
+async function getAIStatus() {
+    console.log('🤖 Getting AI service status...');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/ai-status`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 AI status result:', result);
+            return result.data;
+        } else {
+            console.error('🤖 AI status check failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('🤖 AI status check error:', error);
+        return null;
+    }
+}
+
+// UI Functions for AI Features
+function showAIAnalysisModal(skillData) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2>🤖 AI Skill Analysis</h2>
+            <div id="ai-analysis-content">
+                <p>Analyzing skill with AI...</p>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Analyze skill with AI
+    analyzeSkillWithAI(skillData.title, skillData.description, skillData.category)
+        .then(analysis => {
+            const content = document.getElementById('ai-analysis-content');
+            if (analysis) {
+                content.innerHTML = `
+                    <div class="ai-analysis-result">
+                        <h3>Enhanced Description</h3>
+                        <p>${analysis.enhanced_description || skillData.description}</p>
+                        
+                        <h3>Keywords</h3>
+                        <div class="keywords">
+                            ${analysis.keywords ? analysis.keywords.map(keyword => `<span class="keyword">${keyword}</span>`).join('') : ''}
+                        </div>
+                        
+                        <h3>Suggested Proficiency</h3>
+                        <p><strong>${analysis.suggested_proficiency || 'N/A'}</strong></p>
+                        
+                        <h3>Related Skills</h3>
+                        <p>${analysis.related_skills ? analysis.related_skills.join(', ') : 'N/A'}</p>
+                        
+                        <h3>Applications</h3>
+                        <ul>
+                            ${analysis.applications ? analysis.applications.map(app => `<li>${app}</li>`).join('') : ''}
+                        </ul>
+                        
+                        <div class="ai-actions">
+                            <button class="btn primary" onclick="applyAIEnhancement(${JSON.stringify(analysis).replace(/"/g, '&quot;')})">Apply Enhancement</button>
+                            <button class="btn secondary" onclick="this.closest('.modal').remove()">Close</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="ai-error">
+                        <p>❌ Failed to analyze skill with AI. Please try again.</p>
+                        <button class="btn secondary" onclick="this.closest('.modal').remove()">Close</button>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('AI Analysis error:', error);
+            const content = document.getElementById('ai-analysis-content');
+            content.innerHTML = `
+                <div class="ai-error">
+                    <p>❌ AI analysis failed. Please check your connection and try again.</p>
+                    <button class="btn secondary" onclick="this.closest('.modal').remove()">Close</button>
+                </div>
+            `;
+        });
+}
+
+function showAIStatusModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2>🤖 AI Service Status</h2>
+            <div id="ai-status-content">
+                <p>Checking AI service status...</p>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Get AI status
+    getAIStatus()
+        .then(status => {
+            const content = document.getElementById('ai-status-content');
+            if (status) {
+                content.innerHTML = `
+                    <div class="ai-status-result">
+                        <div class="status-item">
+                            <strong>Service:</strong> ${status.service_name || 'Gemini AI'}
+                        </div>
+                        <div class="status-item">
+                            <strong>Model:</strong> ${status.model || 'N/A'}
+                        </div>
+                        <div class="status-item">
+                            <strong>Status:</strong> 
+                            <span class="status-badge ${status.ai_available ? 'status-online' : 'status-offline'}">
+                                ${status.ai_available ? '🟢 Online' : '🔴 Offline'}
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <strong>Features:</strong>
+                            <ul>
+                                ${status.features ? status.features.map(feature => `<li>${feature}</li>`).join('') : ''}
+                            </ul>
+                        </div>
+                        <div class="ai-actions">
+                            <button class="btn secondary" onclick="this.closest('.modal').remove()">Close</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="ai-error">
+                        <p>❌ Failed to get AI service status.</p>
+                        <button class="btn secondary" onclick="this.closest('.modal').remove()">Close</button>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('AI Status error:', error);
+            const content = document.getElementById('ai-status-content');
+            content.innerHTML = `
+                <div class="ai-error">
+                    <p>❌ Failed to check AI service status.</p>
+                    <button class="btn secondary" onclick="this.closest('.modal').remove()">Close</button>
+                </div>
+            `;
+        });
+}
+
+function applyAIEnhancement(analysis) {
+    // Apply AI enhancement to the form
+    if (analysis.enhanced_description) {
+        document.getElementById('skill-description').value = analysis.enhanced_description;
+    }
+    
+    if (analysis.suggested_proficiency) {
+        document.getElementById('skill-proficiency').value = analysis.suggested_proficiency;
+    }
+    
+    showMessage('✅ AI enhancement applied successfully!', 'success');
+    
+    // Close the modal
+    document.querySelector('.modal').remove();
+}
+
+// Add AI buttons to skill forms
+function addAIButtonsToForms() {
+    // Add AI analysis button to add skill form
+    const addSkillForm = document.getElementById('add-skill-form');
+    if (addSkillForm) {
+        // Check if AI buttons already exist
+        if (!addSkillForm.querySelector('.ai-buttons')) {
+            const aiButtons = document.createElement('div');
+            aiButtons.className = 'ai-buttons';
+            aiButtons.innerHTML = `
+                <div class="ai-button-group">
+                    <button type="button" class="btn ai-btn" onclick="analyzeCurrentSkill()">
+                        🤖 Analyze with AI
+                    </button>
+                    <button type="button" class="btn ai-btn" onclick="enhanceCurrentDescription()">
+                        ✨ Enhance Description
+                    </button>
+                    <button type="button" class="btn ai-btn" onclick="categorizeCurrentSkill()">
+                        🏷️ Auto-Categorize
+                    </button>
+                </div>
+            `;
+            
+            // Insert before the submit button
+            const submitButton = addSkillForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.parentNode.insertBefore(aiButtons, submitButton);
+            }
+        }
+    }
+}
+
+// AI functions for current form data
+function analyzeCurrentSkill() {
+    const title = document.getElementById('skill-title').value;
+    const description = document.getElementById('skill-description').value;
+    const category = document.getElementById('skill-category').value;
+    
+    if (!title || !description) {
+        showMessage('Please enter title and description first', 'error');
+        return;
+    }
+    
+    showAIAnalysisModal({ title, description, category });
+}
+
+function enhanceCurrentDescription() {
+    const title = document.getElementById('skill-title').value;
+    const description = document.getElementById('skill-description').value;
+    
+    if (!title || !description) {
+        showMessage('Please enter title and description first', 'error');
+        return;
+    }
+    
+    showMessage('🤖 Enhancing description with AI...', 'info');
+    
+    enhanceSkillDescription(title, description)
+        .then(result => {
+            if (result && result.enhanced_description) {
+                document.getElementById('skill-description').value = result.enhanced_description;
+                showMessage('✅ Description enhanced successfully!', 'success');
+            } else {
+                showMessage('❌ Failed to enhance description', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Enhancement error:', error);
+            showMessage('❌ Enhancement failed. Please try again.', 'error');
+        });
+}
+
+function categorizeCurrentSkill() {
+    const title = document.getElementById('skill-title').value;
+    const description = document.getElementById('skill-description').value;
+    
+    if (!title || !description) {
+        showMessage('Please enter title and description first', 'error');
+        return;
+    }
+    
+    showMessage('🤖 Categorizing skill with AI...', 'info');
+    
+    categorizeSkillWithAI(title, description)
+        .then(result => {
+            if (result && result.suggested_category) {
+                document.getElementById('skill-category').value = result.suggested_category;
+                showMessage(`✅ Skill categorized as "${result.suggested_category}" with ${Math.round(result.confidence * 100)}% confidence`, 'success');
+            } else {
+                showMessage('❌ Failed to categorize skill', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Categorization error:', error);
+            showMessage('❌ Categorization failed. Please try again.', 'error');
+        });
+}
+
+// Initialize AI features when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Add AI buttons to forms
+    setTimeout(() => {
+        addAIButtonsToForms();
+    }, 1000);
+    
+    // Check AI status on page load
+    getAIStatus().then(status => {
+        if (status && !status.ai_available) {
+            console.log('🤖 AI service is not available - using fallback features');
+        }
+    });
+});

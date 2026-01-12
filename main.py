@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from database import engine, Base, get_db, SessionLocal, Settings
-from routers import users, skills, exchanges, notifications
+from routers import users, skills, exchanges, notifications, ai
 from SIMPLE_ADMIN_FIXED import simple_admin_router
 from admin_auth_endpoint import admin_auth_router
 from crud import get_user_by_username, get_skill, create_skill_exchange_request, create_notification
@@ -101,6 +101,7 @@ app.include_router(users.router, prefix="/users")
 app.include_router(skills.router, prefix="/api/skills")
 app.include_router(exchanges.router, prefix="/api/exchanges")
 app.include_router(notifications.router, prefix="/api/notifications")
+app.include_router(ai.router)
 
 @app.get("/")
 async def root():
