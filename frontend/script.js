@@ -551,7 +551,9 @@ async function loadMySkills() {
     if (!token) {
         console.log('🔍 DEBUG: No token found, showing login required');
         const container = document.getElementById('my-skills-list');
-        container.innerHTML = '<p>Please login to view your skills</p>';
+        if (container) {
+            container.innerHTML = '<p>Please login to view your skills</p>';
+        }
         return;
     }
     
@@ -570,24 +572,44 @@ async function loadMySkills() {
         });
         
         console.log('🔍 DEBUG: My-skills response status:', response.status);
-        console.log('🔍 DEBUG: Response headers:', response.headers);
+        console.log('🔍 DEBUG: Response headers:', Object.fromEntries(response.headers.entries()));
         
         if (response.ok) {
             const skills = await response.json();
             console.log('🔍 DEBUG: Skills loaded from backend:', skills);
             console.log('🔍 DEBUG: Skills count:', skills.length);
+            console.log('🔍 DEBUG: Skills type:', typeof skills);
+            console.log('🔍 DEBUG: Is array:', Array.isArray(skills));
             
+            // Validate response data
             if (Array.isArray(skills)) {
                 displaySkills(skills, 'my-skills-list', true);
+            } else if (skills && typeof skills === 'object') {
+                console.log('🔍 DEBUG: Got object instead of array, checking for data property');
+                if (Array.isArray(skills.data)) {
+                    displaySkills(skills.data, 'my-skills-list', true);
+                } else if (Array.isArray(skills.skills)) {
+                    displaySkills(skills.skills, 'my-skills-list', true);
+                } else {
+                    console.error('🔍 DEBUG: Unexpected response format:', skills);
+                    const container = document.getElementById('my-skills-list');
+                    if (container) {
+                        container.innerHTML = '<p>Invalid data format received from server.</p>';
+                    }
+                }
             } else {
-                console.error('🔍 DEBUG: Expected array but got:', typeof skills);
+                console.error('🔍 DEBUG: Expected array but got:', typeof skills, skills);
                 const container = document.getElementById('my-skills-list');
-                container.innerHTML = '<p>Invalid data format received from server.</p>';
+                if (container) {
+                    container.innerHTML = '<p>Invalid data format received from server.</p>';
+                }
             }
         } else if (response.status === 401) {
             console.error('🔍 DEBUG: Unauthorized - token expired or invalid');
             const container = document.getElementById('my-skills-list');
-            container.innerHTML = '<p>Your session has expired. Please login again.</p>';
+            if (container) {
+                container.innerHTML = '<p>Your session has expired. Please login again.</p>';
+            }
             // Clear invalid tokens and redirect to login
             localStorage.removeItem('accessToken');
             localStorage.removeItem('access_token');
@@ -598,7 +620,15 @@ async function loadMySkills() {
         } else if (response.status === 403) {
             console.error('🔍 DEBUG: Forbidden - insufficient permissions');
             const container = document.getElementById('my-skills-list');
-            container.innerHTML = '<p>You do not have permission to view skills.</p>';
+            if (container) {
+                container.innerHTML = '<p>You do not have permission to view skills.</p>';
+            }
+        } else if (response.status === 404) {
+            console.error('🔍 DEBUG: Endpoint not found');
+            const container = document.getElementById('my-skills-list');
+            if (container) {
+                container.innerHTML = '<p>Skills endpoint not found. Please check server configuration.</p>';
+            }
         } else {
             console.error('🔍 DEBUG: Failed to load skills:', response.status);
             let errorMessage = 'Failed to load skills. Please try again.';
@@ -607,30 +637,44 @@ async function loadMySkills() {
                 const errorData = await response.json();
                 console.error('🔍 DEBUG: Error details:', errorData);
                 if (errorData.detail) {
-                    errorMessage = errorData.detail;
+                    errorMessage = `Server error: ${errorData.detail}`;
+                } else if (errorData.message) {
+                    errorMessage = `Server error: ${errorData.message}`;
                 }
             } catch (e) {
                 console.error('🔍 DEBUG: Could not parse error response:', e);
+                try {
+                    const errorText = await response.text();
+                    console.error('🔍 DEBUG: Error response text:', errorText);
+                    errorMessage = `Server error (${response.status}): ${errorText.substring(0, 100)}`;
+                } catch (textError) {
+                    console.error('🔍 DEBUG: Could not get error text:', textError);
+                }
             }
             
             const container = document.getElementById('my-skills-list');
-            container.innerHTML = `<p>${errorMessage}</p>`;
+            if (container) {
+                container.innerHTML = `<p>${errorMessage}</p>`;
+            }
         }
     } catch (error) {
         console.error('🔍 DEBUG: Network error loading skills:', error);
         console.error('🔍 DEBUG: Error details:', {
             message: error.message,
-            stack: error.stack
+            stack: error.stack,
+            name: error.name
         });
         
         const container = document.getElementById('my-skills-list');
-        container.innerHTML = '<p>Network error. Please check your connection and try again.</p>';
+        if (container) {
+            container.innerHTML = '<p>Network error. Please check your connection and try again.</p>';
+        }
     }
 }
 
 function displaySkills(skills, containerId, showActions = false) {
     const container = document.getElementById(containerId);
-    console.log('🔍 DEBUG: displaySkills called for', containerId, 'with', skills.length, 'skills');
+    console.log('🔍 DEBUG: displaySkills called for', containerId, 'with', skills?.length || 'null', 'skills');
     
     // Validate container exists
     if (!container) {
@@ -642,19 +686,25 @@ function displaySkills(skills, containerId, showActions = false) {
     container.innerHTML = '';
     
     // Handle empty or invalid data
-    if (!skills || !Array.isArray(skills)) {
-        console.error('🔍 DEBUG: Invalid skills data:', skills);
+    if (!skills) {
+        console.error('🔍 DEBUG: Skills data is null/undefined');
         container.innerHTML = '<p>No skills data available.</p>';
+        return;
+    }
+    
+    if (!Array.isArray(skills)) {
+        console.error('🔍 DEBUG: Invalid skills data type:', typeof skills, skills);
+        container.innerHTML = '<p>Invalid skills data format.</p>';
         return;
     }
     
     if (skills.length === 0) {
         console.log('🔍 DEBUG: No skills to display');
-        container.innerHTML = '<p>No skills found.</p>';
+        container.innerHTML = '<p>No skills found. Add your first skill!</p>';
         return;
     }
     
-    console.log('🔍 DEBUG: Rendering skills:', skills);
+    console.log('🔍 DEBUG: Rendering', skills.length, 'skills');
     
     skills.forEach((skill, index) => {
         console.log(`🔍 DEBUG: Rendering skill ${index}:`, skill);
@@ -665,6 +715,13 @@ function displaySkills(skills, containerId, showActions = false) {
             return;
         }
         
+        // Provide default values for missing properties
+        const skillTitle = skill.title || 'Untitled Skill';
+        const skillDescription = skill.description || 'No description available';
+        const skillCategory = skill.category || 'Uncategorized';
+        const skillProficiency = skill.proficiency_level || 'Not specified';
+        const skillId = skill.id || index;
+        
         const skillCard = document.createElement('div');
         skillCard.className = 'skill-card';
         
@@ -673,28 +730,36 @@ function displaySkills(skills, containerId, showActions = false) {
             // For My Skills page - always show Edit/Delete buttons
             actionsHtml = `
                 <div class="skill-actions">
-                    <button class="btn secondary" onclick="editSkill(${skill.id || 0})">Edit</button>
-                    <button class="btn danger" onclick="deleteSkill(${skill.id || 0})">Delete</button>
+                    <button class="btn secondary" onclick="editSkill(${skillId})">Edit</button>
+                    <button class="btn danger" onclick="deleteSkill(${skillId})">Delete</button>
                 </div>
             `;
         } else if (authToken && skill.owner && skill.owner.id !== currentUser.id) {
             actionsHtml = `
                 <div class="skill-actions">
-                    <button class="btn primary" onclick="requestSkillExchange(${skill.id || 0})">Request Exchange</button>
+                    <button class="btn primary" onclick="requestSkillExchange(${skillId})">Request Exchange</button>
                 </div>
             `;
         }
         
+        // Get owner information safely
+        const ownerName = skill.owner ? 
+            (skill.owner.full_name || skill.owner.username || 'Unknown') : 
+            'Unknown';
+        const ownerBio = skill.owner ? 
+            (skill.owner.bio || 'No bio available') : 
+            'No bio available';
+        
         skillCard.innerHTML = `
             <div class="skill-header">
-                <h3 class="skill-title">${skill.title || 'Untitled Skill'}</h3>
-                <span class="skill-category">${skill.category || 'Uncategorized'}</span>
+                <h3 class="skill-title">${skillTitle}</h3>
+                <span class="skill-category">${skillCategory}</span>
             </div>
-            <p class="skill-description">${skill.description || 'No description available'}</p>
-            <span class="skill-proficiency">${skill.proficiency_level || 'Not specified'}</span>
+            <p class="skill-description">${skillDescription}</p>
+            <span class="skill-proficiency">${skillProficiency}</span>
             <div class="skill-owner">
-                <p class="skill-owner-name">Offered by: ${skill.owner ? (skill.owner.full_name || skill.owner.username || 'Unknown') : 'Unknown'}</p>
-                <p>${skill.owner ? (skill.owner.bio || 'No bio available') : 'No bio available'}</p>
+                <p class="skill-owner-name">Offered by: ${ownerName}</p>
+                <p>${ownerBio}</p>
             </div>
             ${actionsHtml}
         `;

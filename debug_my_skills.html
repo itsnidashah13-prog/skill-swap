@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Skills Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>My Skills Debug Tool</h1>
+    
+    <div class="debug-section">
+        <h3>Step 1: Check Login Status</h3>
+        <button onclick="checkLoginStatus()">Check Login Status</button>
+        <div id="login-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 2: Test API Connection</h3>
+        <button onclick="testAPIConnection()">Test API Connection</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 3: Test My Skills Endpoint</h3>
+        <button onclick="testMySkillsEndpoint()">Test My Skills</button>
+        <div id="skills-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 4: Debug Info</h3>
+        <button onclick="showDebugInfo()">Show Debug Info</button>
+        <div id="debug-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8001';
+
+        function getApiUrl(endpoint) {
+            const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+            if (cleanEndpoint.startsWith('users/')) {
+                return `${API_BASE_URL}/${cleanEndpoint}`;
+            }
+            if (!cleanEndpoint.startsWith('api/')) {
+                return `${API_BASE_URL}/api/${cleanEndpoint}`;
+            }
+            return `${API_BASE_URL}/${cleanEndpoint}`;
+        }
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${message}</div>`;
+        }
+
+        function showJsonResult(elementId, data, type = 'info') {
+            const element = document.getElementById(elementId);
+            const jsonStr = JSON.stringify(data, null, 2);
+            element.innerHTML = `<div class="result ${type}"><pre>${jsonStr}</pre></div>`;
+        }
+
+        function checkLoginStatus() {
+            showResult('login-result', 'Checking login status...', 'info');
+            
+            const token = localStorage.getItem('accessToken') || 
+                          localStorage.getItem('access_token') || 
+                          localStorage.getItem('authToken') || 
+                          localStorage.getItem('token');
+            
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (token && currentUser) {
+                showResult('login-result', `
+                    <strong>✅ Logged In</strong><br>
+                    Token: ${token.substring(0, 30)}...<br>
+                    User: ${currentUser}
+                `, 'success');
+            } else {
+                showResult('login-result', `
+                    <strong>❌ Not Logged In</strong><br>
+                    Token: ${token ? 'Found' : 'Not found'}<br>
+                    User: ${currentUser ? 'Found' : 'Not found'}
+                `, 'error');
+            }
+        }
+
+        async function testAPIConnection() {
+            showResult('api-result', 'Testing API connection...', 'info');
+            
+            try {
+                const response = await fetch(getApiUrl('users/login'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'password123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('api-result', `
+                        <strong>✅ API Connection Successful</strong><br>
+                        Status: ${response.status}<br>
+                        Token received: ${data.access_token ? 'Yes' : 'No'}
+                    `, 'success');
+                    
+                    // Store token for next test
+                    localStorage.setItem('accessToken', data.access_token);
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        username: 'testuser',
+                        id: 1
+                    }));
+                    
+                } else {
+                    showResult('api-result', `
+                        <strong>❌ API Connection Failed</strong><br>
+                        Status: ${response.status}<br>
+                        Response: ${await response.text()}
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('api-result', `
+                    <strong>❌ Network Error</strong><br>
+                    Error: ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function testMySkillsEndpoint() {
+            showResult('skills-result', 'Testing My Skills endpoint...', 'info');
+            
+            const token = localStorage.getItem('accessToken') || 
+                          localStorage.getItem('access_token') || 
+                          localStorage.getItem('authToken') || 
+                          localStorage.getItem('token');
+            
+            if (!token) {
+                showResult('skills-result', '❌ No token found. Please login first.', 'error');
+                return;
+            }
+
+            try {
+                const apiUrl = getApiUrl('skills/my-skills');
+                console.log('Making request to:', apiUrl);
+                console.log('Using token:', token.substring(0, 30) + '...');
+
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (response.ok) {
+                    const skills = await response.json();
+                    showResult('skills-result', `
+                        <strong>✅ My Skills Loaded Successfully</strong><br>
+                        Status: ${response.status}<br>
+                        Skills Count: ${Array.isArray(skills) ? skills.length : 'Invalid data'}<br>
+                        Data Type: ${typeof skills}
+                    `, 'success');
+                    
+                    if (Array.isArray(skills)) {
+                        showJsonResult('skills-result', skills, 'success');
+                    }
+                    
+                } else {
+                    let errorMessage = `Status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage += `<br>Detail: ${errorData.detail || 'Unknown error'}`;
+                    } catch (e) {
+                        errorMessage += `<br>Response: ${await response.text()}`;
+                    }
+                    
+                    showResult('skills-result', `
+                        <strong>❌ My Skills Failed</strong><br>
+                        ${errorMessage}
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('skills-result', `
+                    <strong>❌ Network Error</strong><br>
+                    Error: ${error.message}<br>
+                    Stack: ${error.stack}
+                `, 'error');
+            }
+        }
+
+        function showDebugInfo() {
+            const info = {
+                current_url: window.location.href,
+                api_base_url: API_BASE_URL,
+                api_urls: {
+                    login: getApiUrl('users/login'),
+                    my_skills: getApiUrl('skills/my-skills')
+                },
+                browser_info: navigator.userAgent,
+                localStorage_keys: Object.keys(localStorage),
+                tokens: {
+                    accessToken: localStorage.getItem('accessToken') ? 'Found' : 'Not found',
+                    access_token: localStorage.getItem('access_token') ? 'Found' : 'Not found',
+                    authToken: localStorage.getItem('authToken') ? 'Found' : 'Not found',
+                    token: localStorage.getItem('token') ? 'Found' : 'Not found'
+                },
+                timestamp: new Date().toISOString()
+            };
+            
+            showJsonResult('debug-result', info, 'info');
+        }
+
+        // Auto-run debug info on page load
+        window.addEventListener('load', function() {
+            checkLoginStatus();
+            showDebugInfo();
+        });
+    </script>
+</body>
+</html>

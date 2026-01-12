@@ -41,13 +41,13 @@ async def test_gemini_service():
             category="Programming"
         )
         
-        print("   ✅ Skill analysis successful!")
+        print("   Skill analysis successful!")
         print(f"   Enhanced description: {analysis.get('enhanced_description', 'N/A')[:100]}...")
         print(f"   Keywords: {analysis.get('keywords', [])}")
         print(f"   Suggested proficiency: {analysis.get('suggested_proficiency', 'N/A')}")
         
     except Exception as e:
-        print(f"   ❌ Skill analysis failed: {e}")
+        print("   Skill analysis failed:", e)
         return False
     
     # Test 3: Skill categorization
@@ -93,7 +93,7 @@ async def test_gemini_service():
         return False
     
     print("\n" + "=" * 50)
-    print("✅ All Gemini AI tests passed!")
+    print("All Gemini AI tests passed!")
     return True
 
 async def test_fallback_functionality():
@@ -147,11 +147,11 @@ async def test_fallback_functionality():
         gemini_service.api_key = original_api_key
         gemini_service._initialize_model()
     
-    print("\n✅ All fallback tests passed!")
+    print("\nAll fallback tests passed!")
 
 async def main():
     """Main test function"""
-    print("🤖 Gemini AI Integration Test")
+    print("Gemini AI Integration Test")
     print("=" * 60)
     
     # Check environment
@@ -164,7 +164,7 @@ async def main():
     print(f"   GEMINI_API_KEY present: {bool(api_key)}")
     
     if not api_key:
-        print("\n⚠️  No GEMINI_API_KEY found in environment variables")
+        print("\nWARNING: No GEMINI_API_KEY found in environment variables")
         print("   To get an API key:")
         print("   1. Go to https://makersuite.google.com/app/apikey")
         print("   2. Create a new API key")
