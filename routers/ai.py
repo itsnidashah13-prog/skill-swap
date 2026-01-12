@@ -305,7 +305,182 @@ async def get_ai_status():
             "message": f"Failed to get AI status: {str(e)}"
         }
 
-@router.post("/enhance-description")
+@router.post("/suggest-skills")
+async def suggest_skills(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate AI-powered skill suggestions based on user's existing skills
+    """
+    try:
+        logger.info(f"Generating AI skill suggestions for user {current_user.username}")
+        
+        # Get user's existing skills
+        user_skills_query = db.query(Skill).filter(Skill.user_id == current_user.id)
+        user_skills = user_skills_query.all()
+        
+        if not user_skills:
+            return {
+                "success": True,
+                "data": {
+                    "suggestions": [
+                        {
+                            "title": "Web Development",
+                            "description": "Build modern, responsive websites using HTML, CSS, and JavaScript frameworks",
+                            "category": "Programming",
+                            "proficiency_level": "Intermediate",
+                            "reason": "Popular skill with high demand in tech industry"
+                        },
+                        {
+                            "title": "Digital Marketing",
+                            "description": "Promote products and services using online marketing strategies and social media",
+                            "category": "Marketing",
+                            "proficiency_level": "Beginner",
+                            "reason": "Valuable complementary skill for technical professionals"
+                        },
+                        {
+                            "title": "Project Management",
+                            "description": "Plan, execute, and oversee projects to completion using agile methodologies",
+                            "category": "Business",
+                            "proficiency_level": "Intermediate",
+                            "reason": "Essential leadership skill for career advancement"
+                        }
+                    ],
+                    "ai_available": gemini_service.is_available()
+                },
+                "message": "Skill suggestions generated successfully"
+            }
+        
+        # Convert user skills to format for AI analysis
+        user_skills_text = "\n".join([
+            f"- {skill.title}: {skill.description} (Category: {skill.category}, Level: {skill.proficiency_level})"
+            for skill in user_skills
+        ])
+        
+        # Use Gemini AI to generate personalized suggestions
+        if gemini_service.is_available():
+            try:
+                prompt = f"""
+                Based on the user's current skills, suggest 5 new skills they could learn to enhance their career:
+                
+                User's Current Skills:
+                {user_skills_text}
+                
+                Please suggest skills that:
+                1. Complement their existing skills
+                2. Are in high demand in the job market
+                3. Offer good learning progression
+                4. Cover different categories if possible
+                
+                For each suggestion, provide:
+                - title (clear and concise)
+                - description (detailed but engaging)
+                - category (from: Programming, Design, Business, Marketing, Writing, Teaching, Healthcare, Finance, Other)
+                - proficiency_level (Beginner/Intermediate/Advanced/Expert)
+                - reason (why this skill is valuable for them)
+                
+                Respond in JSON format:
+                {{
+                    "suggestions": [
+                        {{
+                            "title": "...",
+                            "description": "...",
+                            "category": "...",
+                            "proficiency_level": "...",
+                            "reason": "..."
+                        }}
+                    ]
+                }}
+                """
+                
+                ai_suggestions = await gemini_service.model.generate_content_async(prompt)
+                result_text = ai_suggestions.text
+                
+                # Parse JSON response
+                try:
+                    result_text = result_text.strip()
+                    if result_text.startswith("```json"):
+                        result_text = result_text[7:]
+                    if result_text.endswith("```"):
+                        result_text = result_text[:-3]
+                    result_text = result_text.strip()
+                    
+                    suggestions_data = json.loads(result_text)
+                    
+                    return {
+                        "success": True,
+                        "data": {
+                            "suggestions": suggestions_data.get("suggestions", []),
+                            "ai_available": True,
+                            "based_on_skills": len(user_skills)
+                        },
+                        "message": f"AI-generated suggestions based on your {len(user_skills)} skills"
+                    }
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse AI suggestions: {e}")
+                    # Fallback to default suggestions
+                    pass
+                    
+            except Exception as e:
+                logger.error(f"AI suggestion generation failed: {e}")
+                # Fallback to default suggestions
+                pass
+        
+        # Fallback suggestions if AI is not available
+        return {
+            "success": True,
+            "data": {
+                "suggestions": [
+                    {
+                        "title": "Data Analysis",
+                        "description": "Analyze complex datasets and create actionable insights using statistical methods",
+                        "category": "Programming",
+                        "proficiency_level": "Intermediate",
+                        "reason": "Builds on analytical skills valuable in any industry"
+                    },
+                    {
+                        "title": "UX/UI Design",
+                        "description": "Create user-centered designs that are both beautiful and functional",
+                        "category": "Design",
+                        "proficiency_level": "Beginner",
+                        "reason": "Complements technical skills with creative design thinking"
+                    },
+                    {
+                        "title": "Public Speaking",
+                        "description": "Develop confidence and clarity in presenting ideas to groups",
+                        "category": "Business",
+                        "proficiency_level": "Intermediate",
+                        "reason": "Essential leadership skill for career growth"
+                    },
+                    {
+                        "title": "Content Writing",
+                        "description": "Create engaging content for blogs, websites, and marketing materials",
+                        "category": "Writing",
+                        "proficiency_level": "Beginner",
+                        "reason": "Valuable skill for personal branding and communication"
+                    },
+                    {
+                        "title": "Financial Literacy",
+                        "description": "Understand and manage personal finances, investments, and budgeting",
+                        "category": "Finance",
+                        "proficiency_level": "Intermediate",
+                        "reason": "Important life skill for financial independence"
+                    }
+                ],
+                "ai_available": False,
+                "based_on_skills": len(user_skills)
+            },
+            "message": f"Skill suggestions generated based on your {len(user_skills)} skills"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating skill suggestions: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate skill suggestions: {str(e)}"
+        )
 async def enhance_skill_description(
     title: str,
     description: str,

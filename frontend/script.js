@@ -1709,6 +1709,174 @@ function categorizeCurrentSkill() {
         });
 }
 
+// AI Skill Suggestions
+async function getAISkillSuggestions() {
+    console.log('🤖 Getting AI skill suggestions...');
+    
+    const token = localStorage.getItem('accessToken') || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('authToken') || 
+                  localStorage.getItem('token');
+    
+    if (!token) {
+        showMessage('Please login to use AI suggestions', 'error');
+        showPage('login');
+        return;
+    }
+    
+    // Show loading modal
+    showAISuggestionsModal();
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/ai/suggest-skills`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('🤖 AI suggestions result:', result);
+            
+            if (result.success && result.data) {
+                displayAISuggestions(result.data);
+            } else {
+                throw new Error(result.message || 'Failed to get suggestions');
+            }
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `Server error: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('🤖 AI suggestions error:', error);
+        
+        // Update modal with error
+        const content = document.getElementById('ai-suggestions-content');
+        if (content) {
+            content.innerHTML = `
+                <div class="ai-error">
+                    <p>❌ Failed to generate AI suggestions</p>
+                    <p>${error.message}</p>
+                    <button class="btn secondary" onclick="this.closest('.modal').style.display='none'">Close</button>
+                </div>
+            `;
+        }
+        
+        showMessage('Failed to get AI suggestions. Please try again.', 'error');
+    }
+}
+
+function showAISuggestionsModal() {
+    const modal = document.getElementById('ai-suggestions-modal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function displayAISuggestions(data) {
+    const content = document.getElementById('ai-suggestions-content');
+    if (!content) return;
+    
+    const { suggestions, ai_available, based_on_skills } = data;
+    
+    let html = `
+        <div class="ai-suggestions-header">
+            <p><strong>🤖 AI Analysis Complete!</strong></p>
+            <p>Generated ${suggestions.length} personalized suggestions based on your ${based_on_skills} existing skills</p>
+            <div class="ai-status-badge ${ai_available ? 'ai-online' : 'ai-offline'}">
+                ${ai_available ? '🟢 AI Powered' : '🔴 Fallback Mode'}
+            </div>
+        </div>
+        <div class="ai-suggestions-list">
+    `;
+    
+    suggestions.forEach((suggestion, index) => {
+        const confidenceClass = suggestion.confidence ? 
+            (suggestion.confidence > 0.8 ? 'high' : suggestion.confidence > 0.5 ? 'medium' : 'low') : 
+            'medium';
+        
+        html += `
+            <div class="ai-suggestion-card">
+                <div class="suggestion-header">
+                    <h3>${suggestion.title}</h3>
+                    <span class="suggestion-category">${suggestion.category}</span>
+                    <span class="ai-confidence ${confidenceClass}">${suggestion.proficiency_level}</span>
+                </div>
+                <div class="suggestion-body">
+                    <p class="suggestion-description">${suggestion.description}</p>
+                    <div class="suggestion-reason">
+                        <strong>Why this skill:</strong> ${suggestion.reason}
+                    </div>
+                </div>
+                <div class="suggestion-actions">
+                    <button class="btn primary" onclick="addAISuggestedSkill(${JSON.stringify(suggestion).replace(/"/g, '&quot;')})">
+                        Add This Skill
+                    </button>
+                    <button class="btn secondary" onclick="enhanceSkillWithAI(${JSON.stringify(suggestion).replace(/"/g, '&quot;')})">
+                        Enhance Description
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+        </div>
+        <div class="ai-suggestions-footer">
+            <button class="btn secondary" onclick="this.closest('.modal').style.display='none'">Close</button>
+            <button class="btn ai-btn" onclick="getAISkillSuggestions()">🔄 Regenerate</button>
+        </div>
+    `;
+    
+    content.innerHTML = html;
+}
+
+function addAISuggestedSkill(suggestion) {
+    console.log('🤖 Adding AI suggested skill:', suggestion);
+    
+    // Pre-fill the add skill form with AI suggestion
+    document.getElementById('skill-title').value = suggestion.title;
+    document.getElementById('skill-description').value = suggestion.description;
+    document.getElementById('skill-category').value = suggestion.category;
+    document.getElementById('skill-proficiency').value = suggestion.proficiency_level;
+    
+    // Close AI suggestions modal
+    document.getElementById('ai-suggestions-modal').style.display = 'none';
+    
+    // Show add skill modal
+    showAddSkillForm();
+    
+    showMessage('✅ AI suggestion applied! Review and save your skill.', 'success');
+}
+
+function enhanceSkillWithAI(suggestion) {
+    console.log('🤖 Enhancing skill with AI:', suggestion);
+    
+    // Show enhancement modal
+    showAIAnalysisModal({
+        title: suggestion.title,
+        description: suggestion.description,
+        category: suggestion.category
+    });
+}
+
+// Initialize AI features when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Add AI buttons to forms
+    setTimeout(() => {
+        addAIButtonsToForms();
+    }, 1000);
+    
+    // Check AI status on page load
+    getAIStatus().then(status => {
+        if (status && !status.ai_available) {
+            console.log('🤖 AI service is not available - using fallback features');
+        }
+    });
+});
+
 // Initialize AI features when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Add AI buttons to forms

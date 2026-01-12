@@ -116,6 +116,7 @@
                 <h2>My Skills</h2>
                 <div style="margin-bottom: 20px;">
                     <button class="btn primary" onclick="showAddSkillForm()">Add New Skill</button>
+                    <button class="btn ai-btn" onclick="getAISkillSuggestions()" style="margin-left: 10px;">🤖 AI Suggest</button>
                     <button class="btn secondary" onclick="testLocalStorage()" style="margin-left: 10px;">Test LocalStorage</button>
                     <button class="btn secondary" onclick="clearLocalStorage()" style="margin-left: 10px;">Clear LocalStorage</button>
                 </div>
@@ -124,6 +125,20 @@
                 </div>
             </div>
         </section>
+
+        <!-- AI Skill Suggestions Modal -->
+        <div id="ai-suggestions-modal" class="modal">
+            <div class="modal-content" style="max-width: 800px; max-height: 600px; overflow-y: auto;">
+                <span class="close" onclick="this.closest('.modal').style.display='none'">&times;</span>
+                <h2>🤖 AI Skill Suggestions</h2>
+                <div id="ai-suggestions-content">
+                    <div style="text-align: center; padding: 20px;">
+                        <div class="ai-loading"></div>
+                        <p>Analyzing your skills and generating personalized suggestions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Add Skill Form (Modal) -->
         <div id="add-skill-modal" class="modal">
